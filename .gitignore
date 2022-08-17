@@ -106,3 +106,7 @@ dist
 
 # Built js files
 build/
+
+# Uploaded files
+src/data/uploads/*
+!src/data/uploads/.gitkeep
