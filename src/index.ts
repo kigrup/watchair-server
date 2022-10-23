@@ -2,6 +2,7 @@ import express from 'express'
 import formidable from 'formidable'
 import fs from 'fs'
 import crypto from 'crypto'
+import { readXLSX } from './services/excel'
 
 const app = express()
 app.use(express.json())
@@ -21,6 +22,32 @@ app.get('/upload', (_req, res) => {
   res.write('<input type="submit">')
   res.write('</form>')
   return res.end()
+})
+
+app.get('/load', (_req, res) => {
+  const path = `${__dirname.replace('\\', '/')}/data/uploads`
+  const files = fs.readdirSync(path)
+  res.writeHead(200, { 'Content-Type': 'text/html' })
+  files.forEach(file => {
+    console.log(file)
+    if (file.endsWith('.xlsx')) {
+      res.write(`<a href="load/${file}">${file}</a><br>`)
+    }
+  })
+  return res.end()
+})
+
+app.get('/load/:filename', (req, res) => {
+  const filename = req.params.filename
+  if (filename.includes('.xlsx')) {
+    readXLSX(`${__dirname.replace('\\', '/')}/data/uploads/${filename}`).then((workbook) => {
+      res.json(workbook.getWorksheet('Authors').getColumn(3).values)
+    }).catch(error => {
+      console.error(error)
+    })
+  } else {
+    res.send('Not an xlsx file')
+  }
 })
 
 app.post('/api/fileupload', (req, res) => {
