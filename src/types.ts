@@ -7,6 +7,14 @@ export const sequelize = new Sequelize({
 
 // Class declarations
 
+export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>> {
+  declare id: string
+  declare fullName: string
+
+  declare createdAt: CreationOptional<Date>
+  declare updatedAt: CreationOptional<Date>
+}
+
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare username: string
   declare hash: string
