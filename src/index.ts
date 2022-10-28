@@ -1,13 +1,13 @@
 import express from 'express'
 /* import fs from 'fs' */
 
-import { fileRouter } from './routes/files'
+import { domainRouter } from './routes/domains'
 
 const app = express()
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use('/api/v1/files', fileRouter)
+app.use('/api/v1/domains', domainRouter)
 
 const PORT = 42525
 
