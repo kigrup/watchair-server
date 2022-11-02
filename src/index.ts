@@ -2,6 +2,7 @@ import express from 'express'
 /* import fs from 'fs' */
 
 import { domainRouter } from './routes/domains'
+import { sequelize } from './types'
 
 const app = express()
 
@@ -19,4 +20,12 @@ app.get('/ping', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
+  sequelize.sync({ force: true })
+    .then(() => {
+      console.log('Sequelize db synced')
+    })
+    .catch((error) => {
+      console.log('Sequelize db failed to sync:')
+      console.log(error)
+    })
 })
