@@ -2,11 +2,11 @@
   "name": "watchair-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
+    "dev": "ts-node-dev src/server.ts",
     "lint": "ts-standard",
-    "start": "node build/index.js",
+    "start": "node build/server.js",
     "tsc": "tsc",
     "test": "jest --coverage",
     "test:watch": "jest --watch"
