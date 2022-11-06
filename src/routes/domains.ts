@@ -1,5 +1,5 @@
 import express from 'express'
-import { getDomains, createDomain, createFile } from '../controllers/domains'
+import { getDomainsHandler, createDomainHandler, createFileHandler } from '../controllers/domains'
 import multer from 'multer'
 import { nanoid } from 'nanoid'
 
@@ -15,8 +15,8 @@ const upload = multer({ storage: storage })
 
 const router = express.Router()
 
-router.route('/').get(getDomains)
-router.route('/').post(createDomain)
-router.route('/files').post(upload.single('file'), createFile)
+router.route('/').get(getDomainsHandler)
+router.route('/').post(createDomainHandler)
+router.route('/files').post(upload.single('file'), createFileHandler)
 
 export { router as domainRouter }
