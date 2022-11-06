@@ -18,7 +18,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
 
 export class Domain extends Model<InferAttributes<Domain>, InferCreationAttributes<Domain>> {
   declare id: string
-  declare ownerUsername: ForeignKey<User['username']>
+  declare ownerUsername: CreationOptional<ForeignKey<User['username']>>
   declare name: string
 
   declare createdAt: CreationOptional<Date>
@@ -695,13 +695,6 @@ SubmissionFile.belongsTo(Submission)
 Submission.hasMany(SubmissionFile)
 SubmissionFile.belongsTo(Author)
 
-Decision.hasMany(Submission, {
-  sourceKey: 'veredict',
-  foreignKey: 'decision',
-  as: 'submissions'
-})
-Submission.belongsTo(Decision)
-
 PCMember.belongsToMany(Topic, { through: PCTopic })
 Topic.belongsToMany(PCMember, { through: PCTopic })
 PCMember.hasMany(PCTopic)
@@ -738,14 +731,14 @@ Submission.hasMany(Review)
 Review.belongsTo(PCMember)
 
 Confidence.hasMany(Review, {
-  sourceKey: 'title',
+  sourceKey: 'value',
   foreignKey: 'confidence',
   as: 'reviews'
 })
 Review.belongsTo(Confidence)
 
 ReviewScore.hasMany(Review, {
-  sourceKey: 'title',
+  sourceKey: 'value',
   foreignKey: 'reviewScore',
   as: 'reviews'
 })
