@@ -37,8 +37,9 @@ const upload = multer({
 
 const router = express.Router()
 
-router.route('/').get(getDomainsHandler)
-router.route('/').post(createDomainHandler)
+router.route('/')
+  .get(getDomainsHandler)
+  .post(createDomainHandler)
 router.route('/:domainId').get(getDomainHandler)
 router.route('/:domainId/files').post(upload.single('file'), createFileHandler)
 
