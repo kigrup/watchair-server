@@ -25,6 +25,23 @@ export class Domain extends Model<InferAttributes<Domain>, InferCreationAttribut
   declare updatedAt: CreationOptional<Date>
 }
 
+export enum JobStatus {
+  RUNNING = 'RUNNING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED'
+}
+
+export class FileProcessingJob extends Model<InferAttributes<FileProcessingJob>, InferCreationAttributes<FileProcessingJob>> {
+  declare id: string
+  declare domainId: ForeignKey<Domain['id']>
+
+  declare fileName: string
+  declare status: JobStatus
+
+  declare createdAt: CreationOptional<Date>
+  declare updatedAt: CreationOptional<Date>
+}
+
 /* export class Dashboard extends Model<InferAttributes<Dashboard>, InferCreationAttributes<Dashboard>> {
   declare id: string
 } */
@@ -231,6 +248,28 @@ Domain.init(
   },
   {
     tableName: 'domains',
+    sequelize
+  }
+)
+
+FileProcessingJob.init(
+  {
+    id: {
+      type: DataTypes.STRING(128),
+      autoIncrement: false,
+      primaryKey: true
+    },
+    fileName: {
+      type: DataTypes.STRING(128)
+    },
+    status: {
+      type: DataTypes.STRING(128)
+    },
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE
+  },
+  {
+    tableName: 'fileprocessingjobs',
     sequelize
   }
 )
@@ -643,6 +682,12 @@ User.hasMany(Domain, {
   as: 'domains'
 })
 Domain.belongsTo(User)
+
+Domain.hasMany(FileProcessingJob, {
+  sourceKey: 'id',
+  foreignKey: 'domainId',
+  as: 'fileprocessingjobs'
+})
 
 Domain.hasMany(Person, {
   sourceKey: 'id',
