@@ -7,6 +7,7 @@ interface CustomError {
 }
 
 export const errorHandlerMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
+  // TODO: add internal server error when no error is specified
   const customError: CustomError = {
     statusCode: err.statusCode,
     message: err.message
