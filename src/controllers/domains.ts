@@ -4,7 +4,8 @@ import { Domain, FileProcessingJob } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
-import { createDomain, createFileProcessingJob, getDomain, getFileProcessingJob, getFileProcessingJobs } from '../services/domains'
+import { createDomain, getDomain } from '../services/domains'
+import { getFileProcessingJob, getFileProcessingJobs, createFileProcessingJob } from '../services/jobs'
 import { NotFoundError } from '../errors/not-found'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
