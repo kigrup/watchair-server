@@ -37,3 +37,10 @@ export const createFileProcessingJob = async (fileName: string, domainId: string
 
   return newJob
 }
+
+export const endFileProcessingJob = async (job: FileProcessingJob, status: JobStatus): Promise<void> => {
+  await job.update({
+    status: status
+  })
+  console.log(`services::jobs::endFileProcessingJob: Job ${job.id} ended with status ${status}`)
+}
