@@ -25,6 +25,26 @@ export const createDomain = async (name: string): Promise<Domain> => {
   return newDomain
 }
 
+export const getFileProcessingJobs = async (): Promise<FileProcessingJob[]> => {
+  const jobs: FileProcessingJob[] = await FileProcessingJob.findAll()
+
+  console.log(`services::domains::getFileProcessingJob: Retrieved FileProcessingJob: ${inspect(jobs, { depth: 1 })}`)
+
+  return jobs
+}
+
+export const getFileProcessingJob = async (jobId: string): Promise<FileProcessingJob | null> => {
+  const job = await FileProcessingJob.findOne({
+    where: {
+      id: jobId
+    }
+  })
+
+  console.log(`services::domains::getFileProcessingJob: Retrieved FileProcessingJob: ${inspect(job, { depth: 1 })}`)
+
+  return job
+}
+
 export const createFileProcessingJob = async (fileName: string, domainId: string): Promise<FileProcessingJob> => {
   const newJob: FileProcessingJob = await FileProcessingJob.create({
     id: nanoid(),

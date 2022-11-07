@@ -4,7 +4,7 @@ import { Domain, FileProcessingJob } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
-import { createDomain, createFileProcessingJob, getDomain } from '../services/domains'
+import { createDomain, createFileProcessingJob, getDomain, getFileProcessingJob, getFileProcessingJobs } from '../services/domains'
 import { NotFoundError } from '../errors/not-found'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
@@ -57,6 +57,30 @@ export const createFileHandler: RequestHandler = async (req, res, next) => {
     res.status(StatusCodes.CREATED).json({
       job
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getJobsHandler: RequestHandler = async (_req, res, next) => {
+  console.log('controllers::domains::getJobsHandler: Received jobs GET request')
+  try {
+    const jobs: FileProcessingJob[] = await getFileProcessingJobs()
+    res.status(StatusCodes.OK).json(jobs)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getJobHandler: RequestHandler = async (req, res, next) => {
+  console.log('controllers::domains::getJobHandler: Received job GET request')
+  try {
+    const jobId = req.params.jobId
+    const job: FileProcessingJob | null = await getFileProcessingJob(jobId)
+    if (job === null) {
+      throw new NotFoundError('Invalid Job Id.')
+    }
+    res.status(StatusCodes.OK).json(job)
   } catch (error) {
     next(error)
   }
