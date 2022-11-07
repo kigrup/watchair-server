@@ -681,12 +681,17 @@ User.hasMany(Domain, {
   foreignKey: 'ownerUsername',
   as: 'domains'
 })
-Domain.belongsTo(User)
+Domain.belongsTo(User, {
+  foreignKey: 'ownerUsername'
+})
 
 Domain.hasMany(FileProcessingJob, {
   sourceKey: 'id',
   foreignKey: 'domainId',
   as: 'fileprocessingjobs'
+})
+FileProcessingJob.belongsTo(Domain, {
+  foreignKey: 'domainId'
 })
 
 Domain.hasMany(Person, {
@@ -694,11 +699,17 @@ Domain.hasMany(Person, {
   foreignKey: 'domainId',
   as: 'persons'
 })
+Person.belongsTo(Domain, {
+  foreignKey: 'domainId'
+})
 
 Domain.hasMany(Author, {
   sourceKey: 'id',
   foreignKey: 'domainId',
   as: 'authors'
+})
+Author.belongsTo(Domain, {
+  foreignKey: 'domainId'
 })
 
 Domain.hasMany(PCMember, {
@@ -706,17 +717,26 @@ Domain.hasMany(PCMember, {
   foreignKey: 'domainId',
   as: 'pcmembers'
 })
+PCMember.belongsTo(Domain, {
+  foreignKey: 'domainId'
+})
 
 Domain.hasMany(SeniorPCMember, {
   sourceKey: 'id',
   foreignKey: 'domainId',
   as: 'seniorpcmembers'
 })
+SeniorPCMember.belongsTo(Domain, {
+  foreignKey: 'domainId'
+})
 
 Domain.hasMany(Chair, {
   sourceKey: 'id',
   foreignKey: 'domainId',
   as: 'chairs'
+})
+Chair.belongsTo(Domain, {
+  foreignKey: 'domainId'
 })
 
 Author.belongsToMany(PCMember, { through: ConflictOfInterest })
