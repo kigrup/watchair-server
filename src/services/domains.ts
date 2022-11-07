@@ -1,18 +1,13 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
-import { NotFoundError } from '../errors/not-found'
 import { Domain } from '../types'
 
-export const getDomain = async (domainId: string): Promise<Domain> => {
+export const getDomain = async (domainId: string): Promise<Domain | null> => {
   const domain = await Domain.findOne({
     where: {
       id: domainId
     }
   })
-
-  if (domain === null) {
-    throw new NotFoundError('Invalid Domain Id.')
-  }
 
   return domain
 }
