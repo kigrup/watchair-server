@@ -37,6 +37,7 @@ export class FileProcessingJob extends Model<InferAttributes<FileProcessingJob>,
 
   declare fileName: string
   declare status: JobStatus
+  declare message: string
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
@@ -263,6 +264,9 @@ FileProcessingJob.init(
       type: DataTypes.STRING(128)
     },
     status: {
+      type: DataTypes.STRING(128)
+    },
+    message: {
       type: DataTypes.STRING(128)
     },
     createdAt: DataTypes.DATE,
