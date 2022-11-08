@@ -28,7 +28,8 @@ export const createFileProcessingJob = async (fileName: string, domainId: string
     id: nanoid(),
     domainId: domainId,
     fileName: fileName,
-    status: JobStatus.RUNNING
+    status: JobStatus.RUNNING,
+    message: ''
   })
 
   console.log(`services::domains::createFileProcessingJob: Created new FileProcessingJob: ${inspect(newJob, { depth: 1 })}`)
@@ -38,9 +39,10 @@ export const createFileProcessingJob = async (fileName: string, domainId: string
   return newJob
 }
 
-export const endFileProcessingJob = async (job: FileProcessingJob, status: JobStatus): Promise<void> => {
+export const endFileProcessingJob = async (job: FileProcessingJob, status: JobStatus, message: string): Promise<void> => {
   await job.update({
-    status: status
+    status: status,
+    message: message
   })
   console.log(`services::jobs::endFileProcessingJob: Job ${job.id} ended with status ${status}`)
 }
