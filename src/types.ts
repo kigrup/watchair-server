@@ -49,7 +49,8 @@ export class FileProcessingJob extends Model<InferAttributes<FileProcessingJob>,
 
 export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>> {
   declare id: string
-  declare fullName: string | null
+  declare firstName: string | null
+  declare lastName: string | null
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
@@ -285,7 +286,11 @@ Person.init(
       autoIncrement: false,
       primaryKey: true
     },
-    fullName: {
+    firstName: {
+      type: new DataTypes.STRING(128),
+      allowNull: true
+    },
+    lastName: {
       type: new DataTypes.STRING(128),
       allowNull: true
     },
@@ -305,7 +310,11 @@ Author.init(
       autoIncrement: false,
       primaryKey: true
     },
-    fullName: {
+    firstName: {
+      type: new DataTypes.STRING(128),
+      allowNull: true
+    },
+    lastName: {
       type: new DataTypes.STRING(128),
       allowNull: true
     },
@@ -325,7 +334,11 @@ PCMember.init(
       autoIncrement: false,
       primaryKey: true
     },
-    fullName: {
+    firstName: {
+      type: new DataTypes.STRING(128),
+      allowNull: true
+    },
+    lastName: {
       type: new DataTypes.STRING(128),
       allowNull: true
     },
@@ -359,7 +372,11 @@ SeniorPCMember.init(
       autoIncrement: false,
       primaryKey: true
     },
-    fullName: {
+    firstName: {
+      type: new DataTypes.STRING(128),
+      allowNull: true
+    },
+    lastName: {
       type: new DataTypes.STRING(128),
       allowNull: true
     },
@@ -379,7 +396,11 @@ Chair.init(
       autoIncrement: false,
       primaryKey: true
     },
-    fullName: {
+    firstName: {
+      type: new DataTypes.STRING(128),
+      allowNull: true
+    },
+    lastName: {
       type: new DataTypes.STRING(128),
       allowNull: true
     },

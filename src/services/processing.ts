@@ -3,9 +3,10 @@ import { FileProcessingJob, JobStatus } from '../types'
 import { endFileProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
+import { createPersons } from './persons'
 
 export const processJob = async (job: FileProcessingJob): Promise<void> => {
-  console.log(`services::processing::processJob: Started processing job ${job.id}`)
+  console.log(`services::processing::processJob: Started processing job ${job.id} for domain ${job.domainId}`)
 
   const COMMITTEE_WORKSHEET_NAME = 'Program committee'
   /* const SUBMISSIONS_WORKSHEET_NAME = 'Submissions'
@@ -24,8 +25,25 @@ export const processJob = async (job: FileProcessingJob): Promise<void> => {
     if (workbook.SheetNames.includes(COMMITTEE_WORKSHEET_NAME)) {
       console.log(`services::processing::processJob: Processing worksheet '${COMMITTEE_WORKSHEET_NAME}'`)
       const committeeWorkSheet: WorkSheet = workbook.Sheets[COMMITTEE_WORKSHEET_NAME]
-      const committeeDataObject = utils.sheet_to_json(committeeWorkSheet)
-      void committeeDataObject
+      const committeeData = utils.sheet_to_json(committeeWorkSheet)
+      const modelObjects: any = {
+        'PC member': [],
+        'senior PC member': [],
+        chair: []
+      }
+      committeeData.map((obj: any) => {
+        const modelObject = {
+          id: obj['person #'],
+          firstName: obj['first name'],
+          lastName: obj['last name'],
+          domainId: job.domainId
+        }
+        const role: string = obj.role
+        modelObjects[role].push(modelObject)
+        return modelObject
+      })
+      // console.log(`services::processing::processJob: Read ${modelObjects['PC member'].length} PC members`)
+      await createPersons(modelObjects['PC member'], modelObjects['senior PC member'], modelObjects.chair)
     }
 
     void endFileProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
