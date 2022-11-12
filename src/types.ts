@@ -89,6 +89,7 @@ export class Submission extends Model<InferAttributes<Submission>, InferCreation
   declare title: string
 
   declare submitted: Date
+  declare lastUpdated: Date
   declare decision: ForeignKey<Decision['veredict']>
 
   declare createdAt: CreationOptional<Date>
@@ -453,6 +454,10 @@ Submission.init(
       allowNull: false
     },
     submitted: {
+      type: new DataTypes.DATE(),
+      allowNull: false
+    },
+    lastUpdated: {
       type: new DataTypes.DATE(),
       allowNull: false
     },
