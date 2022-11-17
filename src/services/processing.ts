@@ -78,7 +78,7 @@ const processPersons = async (job: FileProcessingJob, committeeWorksheet: WorkSh
   await createPersons(modelObjects.authors, modelObjects['PC member'], modelObjects['senior PC member'], modelObjects.chair)
 }
 
-const processSubmissions = async (job: FileProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
+const processSubmissions = async (_job: FileProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
   console.log('services::processing::processSubmissions: Processing submissions worksheets')
   const submissionsData = utils.sheet_to_json(submissionsWorksheet)
   const submissionsModelObjects = submissionsData.map((obj: any) => {
@@ -101,5 +101,6 @@ const processSubmissions = async (job: FileProcessingJob, submissionsWorksheet: 
       submissionId: obj['submission #']
     }
   })
+  void modelObjects
   // await createSubmissionAuthorships(modelObjects)
 }

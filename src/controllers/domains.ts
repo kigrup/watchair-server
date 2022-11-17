@@ -4,7 +4,7 @@ import { Domain, FileProcessingJob } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
-import { createDomain, getDomain } from '../services/domains'
+import { createDomain, getDomain, getDomains } from '../services/domains'
 import { createFileProcessingJob } from '../services/jobs'
 import { NotFoundError } from '../errors/not-found'
 import { getPersons, Persons } from '../services/persons'
@@ -23,9 +23,14 @@ export const getDomainHandler: RequestHandler = async (req, res, next) => {
   }
 }
 
-export const getDomainsHandler: RequestHandler = async (_req, res, _next) => {
+export const getDomainsHandler: RequestHandler = async (_req, res, next) => {
   console.log('controllers::domains::getDomainsHandler: Received domains GET request')
-  res.status(StatusCodes.OK)
+  try {
+    const domains: Domain[] = await getDomains()
+    res.status(StatusCodes.OK).json(domains)
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const createDomainHandler: RequestHandler = async (req, res, next) => {

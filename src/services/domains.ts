@@ -14,6 +14,19 @@ export const getDomain = async (domainId: string): Promise<Domain | null> => {
   return domain
 }
 
+export const getDomains = async (): Promise<Domain[]> => {
+  const domains = await Domain.findAll({
+    order: [
+      ['name', 'ASC'],
+      ['id', 'ASC']
+    ]
+  })
+
+  console.log(`services::domains::getDomains: Retrieved all ${domains.length} domains`)
+
+  return domains
+}
+
 export const createDomain = async (name: string): Promise<Domain> => {
   const newDomain: Domain = await Domain.create({
     id: nanoid(),
