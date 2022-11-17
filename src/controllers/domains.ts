@@ -4,7 +4,7 @@ import { Domain, FileProcessingJob } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
-import { createDomain, getDomain, getDomains } from '../services/domains'
+import { createDomain, deleteDomain, getDomain, getDomains } from '../services/domains'
 import { createFileProcessingJob } from '../services/jobs'
 import { NotFoundError } from '../errors/not-found'
 import { getPersons, Persons } from '../services/persons'
@@ -41,6 +41,20 @@ export const createDomainHandler: RequestHandler = async (req, res, next) => {
     const newDomain: Domain = await createDomain(name)
 
     res.status(StatusCodes.CREATED).json(newDomain)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const deleteDomainHandler: RequestHandler = async (req, res, next) => {
+  console.log('controllers::domains::deleteDomainHandler: Received domains DELETE request')
+  try {
+    const domainId = req.params.domainId
+    const domainDeleted: boolean = await deleteDomain(domainId)
+    if (!domainDeleted) {
+      throw new NotFoundError('Invalid Domain Id.')
+    }
+    res.status(StatusCodes.NO_CONTENT)
   } catch (error) {
     next(error)
   }

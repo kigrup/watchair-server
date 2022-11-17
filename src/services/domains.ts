@@ -37,3 +37,16 @@ export const createDomain = async (name: string): Promise<Domain> => {
 
   return newDomain
 }
+
+export const deleteDomain = async (id: string): Promise<boolean> => {
+  const domain: Domain | null = await getDomain(id)
+
+  if (domain === null) {
+    console.log('services::domains::createDomain: Tried to delete nonexistent domain')
+    return false
+  } else {
+    await domain.destroy()
+    console.log('services::domains::createDomain: Deleted domain')
+    return true
+  }
+}
