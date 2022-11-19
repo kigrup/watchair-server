@@ -54,7 +54,7 @@ export const deleteDomainHandler: RequestHandler = async (req, res, next) => {
     if (!domainDeleted) {
       throw new NotFoundError('Invalid Domain Id.')
     }
-    res.status(StatusCodes.NO_CONTENT)
+    res.status(StatusCodes.NO_CONTENT).send()
   } catch (error) {
     next(error)
   }
