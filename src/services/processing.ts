@@ -4,14 +4,16 @@ import { endFileProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
 import { createPersons } from './persons'
-import { createSubmissions } from './submissions'
+import { createAssignments, createSubmissionAuthorships, createSubmissions } from './submissions'
 import { nanoid } from 'nanoid'
+import { inspect } from 'util'
+import { UniqueConstraintError } from 'sequelize'
 
 const COMMITTEE_WORKSHEET_NAME = 'Program committee'
 const AUTHORS_WORKSHEET_NAME = 'Authors'
 const SUBMISSIONS_WORKSHEET_NAME = 'Submissions'
+const SUBMISSION_ASSIGNMENT_WORKSHEET_NAME = 'Submission assignment'
 /*  const WATCHLIST_WORKSHEET_NAME = 'Watchlist'
-  const SUBMISSION_ASSIGNMENT_WORKSHEET_NAME = 'Submission assignment'
   const REVIEWS_WORKSHEET_NAME = 'Reviews' */
 
 export const processJob = async (job: FileProcessingJob): Promise<void> => {
@@ -29,12 +31,19 @@ export const processJob = async (job: FileProcessingJob): Promise<void> => {
     }
 
     if (workbook.SheetNames.includes(SUBMISSIONS_WORKSHEET_NAME) && workbook.SheetNames.includes(AUTHORS_WORKSHEET_NAME)) {
-      await processSubmissions(job, workbook.Sheets[AUTHORS_WORKSHEET_NAME], workbook.Sheets[AUTHORS_WORKSHEET_NAME])
+      await processSubmissions(job, workbook.Sheets[SUBMISSIONS_WORKSHEET_NAME], workbook.Sheets[AUTHORS_WORKSHEET_NAME])
+    }
+
+    if (workbook.SheetNames.includes(SUBMISSION_ASSIGNMENT_WORKSHEET_NAME)) {
+      await processAssignments(job, workbook.Sheets[SUBMISSION_ASSIGNMENT_WORKSHEET_NAME])
     }
 
     void endFileProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
   } catch (error) {
-    if (error instanceof Error) {
+    console.log(`services::processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
+    if (error instanceof UniqueConstraintError) {
+      void endFileProcessingJob(job, JobStatus.FAILED, error.original.message)
+    } else if (error instanceof Error) {
       void endFileProcessingJob(job, JobStatus.FAILED, error.message)
     } else {
       void endFileProcessingJob(job, JobStatus.FAILED, 'Unknown error')
@@ -71,7 +80,12 @@ const processPersons = async (job: FileProcessingJob, committeeWorksheet: WorkSh
       lastName: obj['last name'],
       domainId: job.domainId
     }
-    modelObjects.authors.push(modelObject)
+    const duplicateEntry: any = modelObjects.authors.find((e: any) => {
+      return (e.id === modelObject.id)
+    })
+    if (duplicateEntry === undefined) {
+      modelObjects.authors.push(modelObject)
+    }
     return modelObject
   })
 
@@ -101,6 +115,20 @@ const processSubmissions = async (_job: FileProcessingJob, submissionsWorksheet:
       submissionId: obj['submission #']
     }
   })
-  void modelObjects
-  // await createSubmissionAuthorships(modelObjects)
+  await createSubmissionAuthorships(modelObjects)
+}
+
+const processAssignments = async (_job: FileProcessingJob, assignmentsWorksheet: WorkSheet): Promise<void> => {
+  console.log('services::processing::processAssignments: Processing assignment worksheets')
+  const assignmentsData = utils.sheet_to_json(assignmentsWorksheet)
+  const assignmentsModelObjects = assignmentsData.map((obj: any) => {
+    const modelObject = {
+      id: nanoid(),
+      pcMemberId: obj['member #'],
+      submissionId: obj['submission #']
+    }
+
+    return modelObject
+  })
+  await createAssignments(assignmentsModelObjects)
 }

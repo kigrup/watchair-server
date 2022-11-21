@@ -20,7 +20,7 @@ export const getPersons = async (domainId: string): Promise<Persons> => {
     seniorPCMembers: results[2],
     chairs: results[3]
   }
-  console.log(`services::persons::getPersons: Retrieved all persons. ${persons.pcMembers.length} PC Members, ${persons.seniorPCMembers.length} Senior PC Members, ${persons.chairs.length} chairs`)
+  console.log(`services::persons::getPersons: Retrieved all persons. ${persons.authors.length} authors, ${persons.pcMembers.length} PC Members, ${persons.seniorPCMembers.length} Senior PC Members, ${persons.chairs.length} chairs`)
 
   return persons
 }
