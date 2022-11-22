@@ -811,40 +811,70 @@ WatchlistEntry.belongsTo(Submission)
 Submission.hasMany(WatchlistEntry)
 WatchlistEntry.belongsTo(PCMember)
 
-PCMember.belongsToMany(Submission, { through: Assignment })
-Submission.belongsToMany(PCMember, { through: Assignment })
-PCMember.hasMany(Assignment)
-Assignment.belongsTo(Submission)
-Submission.hasMany(Assignment)
-Assignment.belongsTo(PCMember)
+PCMember.belongsToMany(Submission, { through: Assignment, foreignKey: 'pcMemberId', otherKey: 'submissionId' })
+Submission.belongsToMany(PCMember, { through: Assignment, foreignKey: 'submissionId', otherKey: 'pcMemberId' })
+PCMember.hasMany(Assignment, {
+  sourceKey: 'id',
+  foreignKey: 'pcMemberId',
+  as: 'pcmembers'
+})
+Assignment.belongsTo(Submission, {
+  foreignKey: 'submissionId'
+})
+Submission.hasMany(Assignment, {
+  sourceKey: 'id',
+  foreignKey: 'submissionId',
+  as: 'submissions'
+})
+Assignment.belongsTo(PCMember, {
+  foreignKey: 'pcMemberId'
+})
 
-PCMember.belongsToMany(Submission, { through: Review })
-Submission.belongsToMany(PCMember, { through: Review })
-PCMember.hasMany(Review)
-Review.belongsTo(Submission)
-Submission.hasMany(Review)
-Review.belongsTo(PCMember)
+PCMember.belongsToMany(Submission, { through: Review, foreignKey: 'pcMemberId', otherKey: 'submissionId' })
+Submission.belongsToMany(PCMember, { through: Review, foreignKey: 'submissionId', otherKey: 'pcMemberId' })
+PCMember.hasMany(Review, {
+  sourceKey: 'id',
+  foreignKey: 'pcMemberId',
+  as: 'ownedreviews'
+})
+Review.belongsTo(Submission, {
+  foreignKey: 'submissionId'
+})
+Submission.hasMany(Review, {
+  sourceKey: 'id',
+  foreignKey: 'submissionId',
+  as: 'subjectreviews'
+})
+Review.belongsTo(PCMember, {
+  foreignKey: 'pcMemberId'
+})
 
 Confidence.hasMany(Review, {
   sourceKey: 'value',
   foreignKey: 'confidence',
   as: 'reviews'
 })
-Review.belongsTo(Confidence)
+Review.belongsTo(Confidence, {
+  foreignKey: 'confidence'
+})
 
 ReviewScore.hasMany(Review, {
   sourceKey: 'value',
   foreignKey: 'reviewScore',
   as: 'reviews'
 })
-Review.belongsTo(ReviewScore)
+Review.belongsTo(ReviewScore, {
+  foreignKey: 'reviewScore'
+})
 
 Decision.hasMany(Submission, {
   sourceKey: 'veredict',
   foreignKey: 'decision',
   as: 'submissions'
 })
-Submission.belongsTo(Decision)
+Submission.belongsTo(Decision, {
+  foreignKey: 'decision'
+})
 
 PCMember.belongsToMany(Submission, { through: Bid })
 Submission.belongsToMany(PCMember, { through: Bid })
@@ -858,7 +888,9 @@ BidType.hasMany(Bid, {
   foreignKey: 'type',
   as: 'bids'
 })
-Bid.belongsTo(BidType)
+Bid.belongsTo(BidType, {
+  foreignKey: 'type'
+})
 
 SeniorPCMember.belongsToMany(Submission, { through: Recommendation })
 Submission.belongsToMany(SeniorPCMember, { through: Recommendation })
@@ -872,4 +904,6 @@ Recommendation.hasMany(Metareview, {
   foreignKey: 'recommendation',
   as: 'metareviews'
 })
-Metareview.belongsTo(Recommendation)
+Metareview.belongsTo(Recommendation, {
+  foreignKey: 'recommendation'
+})
