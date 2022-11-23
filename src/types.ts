@@ -58,9 +58,15 @@ export class Person extends Model<InferAttributes<Person>, InferCreationAttribut
   declare domainId: ForeignKey<Domain['id']>
 }
 
-export class Author extends Person {}
+export class Author extends Model<InferAttributes<Author>, InferCreationAttributes<Author>> {
+  declare id: string
+  declare personId: ForeignKey<Person['id']>
+}
 
-export class PCMember extends Person {}
+export class PCMember extends Model<InferAttributes<PCMember>, InferCreationAttributes<PCMember>> {
+  declare id: string
+  declare personId: ForeignKey<Person['id']>
+}
 
 export class ConflictOfInterest extends Model<InferAttributes<ConflictOfInterest>, InferCreationAttributes<ConflictOfInterest>> {
   declare id: string
@@ -69,9 +75,15 @@ export class ConflictOfInterest extends Model<InferAttributes<ConflictOfInterest
   declare pcMemberId: ForeignKey<PCMember['id']>
 }
 
-export class SeniorPCMember extends PCMember {}
+export class SeniorPCMember extends Model<InferAttributes<SeniorPCMember>, InferCreationAttributes<SeniorPCMember>> {
+  declare id: string
+  declare pcMemberId: ForeignKey<PCMember['id']>
+}
 
-export class Chair extends SeniorPCMember {}
+export class Chair extends Model<InferAttributes<Chair>, InferCreationAttributes<Chair>> {
+  declare id: string
+  declare seniorPcMemberId: ForeignKey<SeniorPCMember['id']>
+}
 
 export class Topic extends Model<InferAttributes<Topic>, InferCreationAttributes<Topic>> {
   declare title: string
@@ -310,17 +322,7 @@ Author.init(
       type: DataTypes.STRING(128),
       autoIncrement: false,
       primaryKey: true
-    },
-    firstName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    lastName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    }
   },
   {
     tableName: 'authors',
@@ -334,17 +336,7 @@ PCMember.init(
       type: DataTypes.STRING(128),
       autoIncrement: false,
       primaryKey: true
-    },
-    firstName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    lastName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    }
   },
   {
     tableName: 'pcmembers',
@@ -372,17 +364,7 @@ SeniorPCMember.init(
       type: DataTypes.STRING(128),
       autoIncrement: false,
       primaryKey: true
-    },
-    firstName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    lastName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    }
   },
   {
     tableName: 'seniorpcmembers',
@@ -396,17 +378,7 @@ Chair.init(
       type: DataTypes.STRING(128),
       autoIncrement: false,
       primaryKey: true
-    },
-    firstName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    lastName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    }
   },
   {
     tableName: 'chairs',
@@ -730,43 +702,26 @@ Domain.hasMany(Person, {
   as: 'persons'
 })
 Person.belongsTo(Domain, {
-  foreignKey: 'domainId'
+  foreignKey: 'domainId',
+  as: 'domain'
 })
 
-Domain.hasMany(Author, {
-  sourceKey: 'id',
-  foreignKey: 'domainId',
-  as: 'authors'
-})
-Author.belongsTo(Domain, {
-  foreignKey: 'domainId'
+Author.belongsTo(Person, {
+  foreignKey: 'personId',
+  as: 'person'
 })
 
-Domain.hasMany(PCMember, {
-  sourceKey: 'id',
-  foreignKey: 'domainId',
-  as: 'pcmembers'
+PCMember.belongsTo(Person, {
+  foreignKey: 'personId',
+  as: 'person'
 })
-PCMember.belongsTo(Domain, {
-  foreignKey: 'domainId'
+SeniorPCMember.belongsTo(PCMember, {
+  foreignKey: 'pcMemberId',
+  as: 'pcMember'
 })
-
-Domain.hasMany(SeniorPCMember, {
-  sourceKey: 'id',
-  foreignKey: 'domainId',
-  as: 'seniorpcmembers'
-})
-SeniorPCMember.belongsTo(Domain, {
-  foreignKey: 'domainId'
-})
-
-Domain.hasMany(Chair, {
-  sourceKey: 'id',
-  foreignKey: 'domainId',
-  as: 'chairs'
-})
-Chair.belongsTo(Domain, {
-  foreignKey: 'domainId'
+Chair.belongsTo(SeniorPCMember, {
+  foreignKey: 'seniorPcMemberId',
+  as: 'seniorPcMember'
 })
 
 Author.belongsToMany(PCMember, { through: ConflictOfInterest })
