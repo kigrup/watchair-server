@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { FileProcessingJob, JobStatus } from '../types'
-import { processJob } from './processing'
+import { processJob } from './file-processing'
 
 export const getFileProcessingJobs = async (): Promise<FileProcessingJob[]> => {
   const jobs: FileProcessingJob[] = await FileProcessingJob.findAll()
