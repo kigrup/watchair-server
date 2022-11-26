@@ -1,13 +1,18 @@
 import { RequestHandler } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { NotFoundError } from '../errors/not-found'
-import { getProcessingJobs, getProcessingJob } from '../services/jobs'
+import { getDomain } from '../services/domains'
+import { getDomainProcessingJobs, getProcessingJob } from '../services/jobs'
 import { ProcessingJob } from '../types'
 
-export const getJobsHandler: RequestHandler = async (_req, res, next) => {
+export const getJobsHandler: RequestHandler = async (req, res, next) => {
   console.log('controllers::domains::getJobsHandler: Received jobs GET request')
   try {
-    const jobs: ProcessingJob[] = await getProcessingJobs()
+    const domainId = req.params.domainId
+    if (await getDomain(domainId) === null) {
+      throw new NotFoundError('Invalid Domain Id.')
+    }
+    const jobs: ProcessingJob[] = await getDomainProcessingJobs(domainId)
     res.status(StatusCodes.OK).json(jobs)
   } catch (error) {
     next(error)

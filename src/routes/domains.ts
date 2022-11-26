@@ -4,6 +4,7 @@ import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { getFileExtension } from '../utils/string'
+import { getJobHandler, getJobsHandler } from '../controllers/jobs'
 
 const ALLOWED_EXTENSIONS = ['.xlsx', '.xls']
 
@@ -46,6 +47,9 @@ router.route('/:domainId')
   .delete(deleteDomainHandler)
 
 router.route('/:domainId/files').post(upload.single('file'), createFileHandler)
+
+router.route('/:domainId/jobs').get(getJobsHandler)
+router.route('/:domainId/jobs/:jobId').get(getJobHandler)
 
 router.route('/:domainId/persons').get(getPersonsHandler)
 

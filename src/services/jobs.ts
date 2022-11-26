@@ -3,10 +3,10 @@ import { inspect } from 'util'
 import { ProcessingJob, JobStatus, JobType, JobSubtype } from '../types'
 import { processFileJob } from './file-processing'
 
-export const getProcessingJobs = async (): Promise<ProcessingJob[]> => {
+export const getDomainProcessingJobs = async (domainId: string): Promise<ProcessingJob[]> => {
   const jobs: ProcessingJob[] = await ProcessingJob.findAll()
 
-  console.log(`services::domains::getProcessingJob: Retrieved ProcessingJob: ${inspect(jobs, { depth: 1 })}`)
+  console.log(`services::domains::getDomainProcessingJobs: Retrieved domain ${domainId} ProcessingJob: ${inspect(jobs, { depth: 1 })}`)
 
   return jobs
 }
