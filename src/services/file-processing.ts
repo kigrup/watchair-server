@@ -1,6 +1,6 @@
 import path from 'path'
-import { ProcessingJob, JobStatus } from '../types'
-import { endProcessingJob } from './jobs'
+import { ProcessingJob, JobStatus, JobType } from '../types'
+import { createProcessingJob, endProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
 import { createAuthors, createChairs, createPCMembers, createSeniorPCMembers } from './persons'
@@ -19,11 +19,11 @@ const SCORES_WORKSHEET_NAME = 'Review field scores'
 const REVIEWS_WORKSHEET_NAME = 'Reviews'
 
 export const processJob = async (job: ProcessingJob): Promise<void> => {
-  console.log(`services::processing::processJob: Started processing job ${job.id} for domain ${job.domainId}`)
+  console.log(`services::file-processing::processJob: Started processing job ${job.id} for domain ${job.domainId}`)
 
   try {
     const filePath = path.join(__dirname, '..', '..', 'data', 'uploads', job.subject)
-    console.log(`services::processing::processJob: Using filePath= ${filePath}`)
+    console.log(`services::file-processing::processJob: Using filePath= ${filePath}`)
 
     const workbookBuffer: Buffer = readFileSync(filePath)
     const workbook: WorkBook = read(workbookBuffer)
@@ -49,8 +49,10 @@ export const processJob = async (job: ProcessingJob): Promise<void> => {
     }
 
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
+
+    await createProcessingJob(JobType.METRIC)
   } catch (error) {
-    console.log(`services::processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
+    console.log(`services::file-processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
     if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {
       await endProcessingJob(job, JobStatus.FAILED, error.original.message)
     } else if (error instanceof Error) {
@@ -62,7 +64,7 @@ export const processJob = async (job: ProcessingJob): Promise<void> => {
 }
 
 const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
-  console.log('services::processing::processPersons: Processing committee members and authors worksheets')
+  console.log('services::file-processing::processPersons: Processing committee members and authors worksheets')
   const committeeData = utils.sheet_to_json(committeeWorksheet)
   const modelObjects: any = {
     authors: [],
@@ -111,7 +113,7 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
 }
 
 const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
-  console.log('services::processing::processSubmissions: Processing submissions worksheets')
+  console.log('services::file-processing::processSubmissions: Processing submissions worksheets')
   const submissionsData = utils.sheet_to_json(submissionsWorksheet)
   const submissionsModelObjects = submissionsData.map((obj: any) => {
     const modelObject = {
@@ -137,7 +139,7 @@ const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: Wor
 }
 
 const processAssignments = async (_job: ProcessingJob, assignmentsWorksheet: WorkSheet): Promise<void> => {
-  console.log('services::processing::processAssignments: Processing assignment worksheets')
+  console.log('services::file-processing::processAssignments: Processing assignment worksheets')
   const assignmentsData = utils.sheet_to_json(assignmentsWorksheet)
   const assignmentsModelObjects = assignmentsData.map((obj: any) => {
     const modelObject = {
@@ -152,7 +154,7 @@ const processAssignments = async (_job: ProcessingJob, assignmentsWorksheet: Wor
 }
 
 const processScores = async (_job: ProcessingJob, scoresWorksheet: WorkSheet): Promise<void> => {
-  console.log('services::processing::processScores: Processing scores worksheet')
+  console.log('services::file-processing::processScores: Processing scores worksheet')
   const reviewScoresData = utils.sheet_to_json(scoresWorksheet)
   let reviewScoresModelObjects = reviewScoresData.filter((obj: any) => {
     return obj['field title'] === 'Overall evaluation'
@@ -189,7 +191,7 @@ const processScores = async (_job: ProcessingJob, scoresWorksheet: WorkSheet): P
 }
 
 const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet): Promise<void> => {
-  console.log('services::processing::processReviews: Processing reviews worksheet')
+  console.log('services::file-processing::processReviews: Processing reviews worksheet')
   const reviewsData = utils.sheet_to_json(reviewsWorksheet)
   const reviewsModelObjects = reviewsData.map((obj: any) => {
     const submittedDate: string = obj.date
