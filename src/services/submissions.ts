@@ -1,4 +1,4 @@
-import { Assignment, Submission, SubmissionAutorship } from '../types'
+import { Assignment, PCMember, Person, Submission, SubmissionAutorship } from '../types'
 
 export const createSubmissions = async (submissions: any): Promise<Submission[]> => {
   console.log('services::submissions::createSubmissions: Bulk creating submissions...')
@@ -18,6 +18,30 @@ export const createSubmissionAuthorships = async (authorships: any): Promise<Sub
   console.log('services::submissions::createSubmissionAuthorships: Done bulk creating authorships')
 
   return createdSubmissions
+}
+
+export const getDomainAssignments = async (domainId: string): Promise<Assignment[]> => {
+  console.log(`services::submissions::getDomainAssignments: Retrieving domain ${domainId} assignments...`)
+
+  const assignments = await Assignment.findAll({
+    include: [{
+      model: PCMember,
+      as: 'pcmember',
+      required: true,
+      include: [{
+        model: Person,
+        as: 'person',
+        required: true,
+        where: {
+          domainId: domainId
+        }
+      }]
+    }]
+  })
+
+  console.log('services::submissions::getDomainAssignments: Done retrieving assignments')
+
+  return assignments
 }
 
 export const createAssignments = async (assignments: any): Promise<Assignment[]> => {

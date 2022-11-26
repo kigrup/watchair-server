@@ -10,6 +10,7 @@ import { inspect } from 'util'
 import { ForeignKeyConstraintError, UniqueConstraintError } from 'sequelize'
 import { createReviews } from './reviews'
 import { createConfidenceScores, createReviewScores } from './scores'
+import { processAllMetrics } from './metric-processing'
 
 const COMMITTEE_WORKSHEET_NAME = 'Program committee'
 const AUTHORS_WORKSHEET_NAME = 'Authors'
@@ -49,6 +50,8 @@ export const processFileJob = async (job: ProcessingJob): Promise<void> => {
     }
 
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
+
+    await processAllMetrics(job.domainId)
   } catch (error) {
     console.log(`services::file-processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
     if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {

@@ -34,16 +34,16 @@ export const getDomainUnitMetrics = async (domainId: string): Promise<UnitMetric
   return unitMetrics
 }
 
-export const createUnitMetric = async (title: string, description: string, value: number, minValue: number, maxValue: number, step: number, domainId: string): Promise<UnitMetric> => {
+export const createUnitMetric = async (unitMetric: any): Promise<UnitMetric> => {
   const newUnitMetric: UnitMetric = await UnitMetric.create({
     id: nanoid(),
-    title: title,
-    description: description,
-    value: value,
-    minValue: minValue,
-    maxValue: maxValue,
-    step: step,
-    domainId: domainId
+    title: unitMetric.title,
+    description: unitMetric.description,
+    value: unitMetric.value,
+    minValue: unitMetric.minValue,
+    maxValue: unitMetric.maxValue,
+    step: unitMetric.step,
+    domainId: unitMetric.domainId
   })
 
   console.log(`services::metrics::createUnitMetric: Created new UnitMetric: ${inspect(newUnitMetric, { depth: 1 })}`)

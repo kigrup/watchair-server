@@ -858,7 +858,8 @@ PCMember.hasMany(Assignment, {
   as: 'pcmembers'
 })
 Assignment.belongsTo(Submission, {
-  foreignKey: 'submissionId'
+  foreignKey: 'submissionId',
+  as: 'submission'
 })
 Submission.hasMany(Assignment, {
   sourceKey: 'id',
@@ -866,18 +867,36 @@ Submission.hasMany(Assignment, {
   as: 'submissions'
 })
 Assignment.belongsTo(PCMember, {
-  foreignKey: 'pcMemberId'
+  foreignKey: 'pcMemberId',
+  as: 'pcmember'
 })
 
-PCMember.belongsToMany(Submission, { through: Review, foreignKey: 'pcMemberId', otherKey: 'submissionId' })
-Submission.belongsToMany(PCMember, { through: Review, foreignKey: 'submissionId', otherKey: 'pcMemberId' })
+PCMember.belongsToMany(Submission, {
+  through: Review,
+  foreignKey: 'pcMemberId',
+  otherKey: 'submissionId',
+  as: {
+    singular: 'submissionReviewed',
+    plural: 'submissionsReviewed'
+  }
+})
+Submission.belongsToMany(PCMember, {
+  through: Review,
+  foreignKey: 'submissionId',
+  otherKey: 'pcMemberId',
+  as: {
+    singular: 'submissionReviewer',
+    plural: 'submissionReviewers'
+  }
+})
 PCMember.hasMany(Review, {
   sourceKey: 'id',
   foreignKey: 'pcMemberId',
   as: 'ownedreviews'
 })
 Review.belongsTo(Submission, {
-  foreignKey: 'submissionId'
+  foreignKey: 'submissionId',
+  as: 'review'
 })
 Submission.hasMany(Review, {
   sourceKey: 'id',
@@ -885,7 +904,8 @@ Submission.hasMany(Review, {
   as: 'subjectreviews'
 })
 Review.belongsTo(PCMember, {
-  foreignKey: 'pcMemberId'
+  foreignKey: 'pcMemberId',
+  as: 'reviewer'
 })
 
 Confidence.hasMany(Review, {

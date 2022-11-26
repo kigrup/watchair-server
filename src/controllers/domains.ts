@@ -8,7 +8,7 @@ import { createDomain, deleteDomain, getDomain, getDomains } from '../services/d
 import { createProcessingJob } from '../services/jobs'
 import { NotFoundError } from '../errors/not-found'
 import { getPersons, Persons } from '../services/persons'
-import { getReviews } from '../services/reviews'
+import { getDomainReviews } from '../services/reviews'
 import { getDomainUnitMetrics } from '../services/metrics'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
@@ -75,7 +75,7 @@ export const createFileHandler: RequestHandler = async (req, res, next) => {
     }
 
     const fileName: string = req.file.filename
-    const job: ProcessingJob = await createProcessingJob(JobType.FILE, JobSubtype.REVIEWS_DONE, fileName, domainId)
+    const job: ProcessingJob = await createProcessingJob(JobType.FILE, JobSubtype.EXCEL, fileName, domainId)
 
     res.status(StatusCodes.CREATED).json({
       job
@@ -106,7 +106,7 @@ export const getReviewsHandler: RequestHandler = async (req, res, next) => {
     if (await getDomain(domainId) === null) {
       throw new NotFoundError('Invalid Domain Id.')
     }
-    const reviews: Review[] = await getReviews(domainId)
+    const reviews: Review[] = await getDomainReviews(domainId)
     res.status(StatusCodes.OK).json(reviews)
   } catch (error) {
     next(error)
