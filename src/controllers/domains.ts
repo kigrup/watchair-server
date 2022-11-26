@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express-serve-static-core'
 import { StatusCodes } from 'http-status-codes'
-import { Domain, FileProcessingJob, Review } from '../types'
+import { Domain, FileProcessingJob, Review, UnitMetric } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
@@ -9,6 +9,7 @@ import { createFileProcessingJob } from '../services/jobs'
 import { NotFoundError } from '../errors/not-found'
 import { getPersons, Persons } from '../services/persons'
 import { getReviews } from '../services/reviews'
+import { getDomainUnitMetrics } from '../services/metrics'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
   console.log('controllers::domains::getDomainHandler: Received domains GET request')
@@ -107,6 +108,20 @@ export const getReviewsHandler: RequestHandler = async (req, res, next) => {
     }
     const reviews: Review[] = await getReviews(domainId)
     res.status(StatusCodes.OK).json(reviews)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getUnitMetricsHandler: RequestHandler = async (req, res, next) => {
+  console.log('controllers::domains::getUnitMetricsHandler: Received unit metrics GET request')
+  try {
+    const domainId = req.params.domainId
+    if (await getDomain(domainId) === null) {
+      throw new NotFoundError('Invalid Domain Id.')
+    }
+    const unitMetrics: UnitMetric[] = await getDomainUnitMetrics(domainId)
+    res.status(StatusCodes.OK).json(unitMetrics)
   } catch (error) {
     next(error)
   }

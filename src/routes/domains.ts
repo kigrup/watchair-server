@@ -1,5 +1,5 @@
 import express from 'express'
-import { getDomainsHandler, createDomainHandler, createFileHandler, getDomainHandler, getPersonsHandler, deleteDomainHandler, getReviewsHandler } from '../controllers/domains'
+import { getDomainsHandler, createDomainHandler, createFileHandler, getDomainHandler, getPersonsHandler, deleteDomainHandler, getReviewsHandler, getUnitMetricsHandler } from '../controllers/domains'
 import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
@@ -50,5 +50,7 @@ router.route('/:domainId/files').post(upload.single('file'), createFileHandler)
 router.route('/:domainId/persons').get(getPersonsHandler)
 
 router.route('/:domainId/reviews').get(getReviewsHandler)
+
+router.route('/:domainId/unit-metrics').get(getUnitMetricsHandler)
 
 export { router as domainsRouter }

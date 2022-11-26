@@ -43,9 +43,22 @@ export class FileProcessingJob extends Model<InferAttributes<FileProcessingJob>,
   declare updatedAt: CreationOptional<Date>
 }
 
-/* export class Dashboard extends Model<InferAttributes<Dashboard>, InferCreationAttributes<Dashboard>> {
+export class UnitMetric extends Model<InferAttributes<UnitMetric>, InferCreationAttributes<UnitMetric>> {
   declare id: string
-} */
+
+  declare title: string
+  declare description: CreationOptional<string>
+
+  declare value: number
+  declare minValue: CreationOptional<number>
+  declare maxValue: CreationOptional<number>
+  declare step: CreationOptional<number>
+
+  declare createdAt: CreationOptional<Date>
+  declare updatedAt: CreationOptional<Date>
+
+  declare domainId: ForeignKey<Domain['id']>
+}
 
 export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>> {
   declare id: string
@@ -288,6 +301,46 @@ FileProcessingJob.init(
   },
   {
     tableName: 'fileprocessingjobs',
+    sequelize
+  }
+)
+
+UnitMetric.init(
+  {
+    id: {
+      type: DataTypes.STRING(128),
+      autoIncrement: false,
+      primaryKey: true
+    },
+    title: {
+      type: DataTypes.STRING(128),
+      allowNull: false
+    },
+    description: {
+      type: DataTypes.STRING(256),
+      allowNull: true
+    },
+    value: {
+      type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    minValue: {
+      type: DataTypes.FLOAT,
+      allowNull: true
+    },
+    maxValue: {
+      type: DataTypes.FLOAT,
+      allowNull: true
+    },
+    step: {
+      type: DataTypes.FLOAT,
+      allowNull: true
+    },
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE
+  },
+  {
+    tableName: 'unitmetric',
     sequelize
   }
 )
@@ -693,6 +746,15 @@ Domain.hasMany(FileProcessingJob, {
   as: 'fileprocessingjobs'
 })
 FileProcessingJob.belongsTo(Domain, {
+  foreignKey: 'domainId'
+})
+
+Domain.hasMany(UnitMetric, {
+  sourceKey: 'id',
+  foreignKey: 'domainId',
+  as: 'unitmetrics'
+})
+UnitMetric.belongsTo(Domain, {
   foreignKey: 'domainId'
 })
 
