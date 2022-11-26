@@ -36,11 +36,19 @@ export enum JobType {
   METRIC = 'METRIC'
 }
 
+export enum JobSubtype {
+  // Type: FILE
+  EXCEL = 'EXCEL',
+  // Type: METRIC
+  REVIEWS_DONE = 'REVIEWS DONE'
+}
+
 export class ProcessingJob extends Model<InferAttributes<ProcessingJob>, InferCreationAttributes<ProcessingJob>> {
   declare id: string
   declare domainId: ForeignKey<Domain['id']>
 
   declare type: JobType
+  declare subtype: JobSubtype
   declare subject: string
   declare status: JobStatus
   declare message: string
@@ -294,6 +302,10 @@ ProcessingJob.init(
       primaryKey: true
     },
     type: {
+      type: DataTypes.STRING(128),
+      allowNull: false
+    },
+    subtype: {
       type: DataTypes.STRING(128),
       allowNull: false
     },

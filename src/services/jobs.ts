@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
-import { ProcessingJob, JobStatus, JobType } from '../types'
+import { ProcessingJob, JobStatus, JobType, JobSubtype } from '../types'
 import { processFileJob } from './file-processing'
 
 export const getProcessingJobs = async (): Promise<ProcessingJob[]> => {
@@ -23,11 +23,12 @@ export const getProcessingJob = async (jobId: string): Promise<ProcessingJob | n
   return job
 }
 
-export const createProcessingJob = async (type: JobType, subject: string, domainId: string): Promise<ProcessingJob> => {
+export const createProcessingJob = async (type: JobType, subtype: JobSubtype, subject: string, domainId: string): Promise<ProcessingJob> => {
   const newJob: ProcessingJob = await ProcessingJob.create({
     id: nanoid(),
     domainId: domainId,
     type: type,
+    subtype: subtype,
     subject: subject,
     status: JobStatus.RUNNING,
     message: ''

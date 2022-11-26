@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express-serve-static-core'
 import { StatusCodes } from 'http-status-codes'
-import { Domain, JobType, ProcessingJob, Review, UnitMetric } from '../types'
+import { Domain, JobSubtype, JobType, ProcessingJob, Review, UnitMetric } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
@@ -75,7 +75,7 @@ export const createFileHandler: RequestHandler = async (req, res, next) => {
     }
 
     const fileName: string = req.file.filename
-    const job: ProcessingJob = await createProcessingJob(JobType.FILE, fileName, domainId)
+    const job: ProcessingJob = await createProcessingJob(JobType.FILE, JobSubtype.REVIEWS_DONE, fileName, domainId)
 
     res.status(StatusCodes.CREATED).json({
       job

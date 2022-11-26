@@ -1,6 +1,6 @@
 import path from 'path'
-import { ProcessingJob, JobStatus, JobType } from '../types'
-import { createProcessingJob, endProcessingJob } from './jobs'
+import { ProcessingJob, JobStatus } from '../types'
+import { endProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
 import { createAuthors, createChairs, createPCMembers, createSeniorPCMembers } from './persons'
@@ -49,8 +49,6 @@ export const processFileJob = async (job: ProcessingJob): Promise<void> => {
     }
 
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
-
-    // await createProcessingJob(JobType.METRIC)
   } catch (error) {
     console.log(`services::file-processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
     if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {
