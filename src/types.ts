@@ -768,7 +768,8 @@ Domain.hasMany(ProcessingJob, {
   as: 'processingjobs'
 })
 ProcessingJob.belongsTo(Domain, {
-  foreignKey: 'domainId'
+  foreignKey: 'domainId',
+  as: 'jobdomain'
 })
 
 Domain.hasMany(UnitMetric, {

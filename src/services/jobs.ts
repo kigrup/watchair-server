@@ -4,7 +4,11 @@ import { ProcessingJob, JobStatus, JobType, JobSubtype } from '../types'
 import { processFileJob } from './file-processing'
 
 export const getDomainProcessingJobs = async (domainId: string): Promise<ProcessingJob[]> => {
-  const jobs: ProcessingJob[] = await ProcessingJob.findAll()
+  const jobs: ProcessingJob[] = await ProcessingJob.findAll({
+    where: {
+      domainId: domainId
+    }
+  })
 
   console.log(`services::domains::getDomainProcessingJobs: Retrieved domain ${domainId} ProcessingJob: ${inspect(jobs, { depth: 1 })}`)
 
