@@ -31,11 +31,17 @@ export enum JobStatus {
   FAILED = 'FAILED'
 }
 
-export class FileProcessingJob extends Model<InferAttributes<FileProcessingJob>, InferCreationAttributes<FileProcessingJob>> {
+export enum JobType {
+  FILE = 'FILE',
+  METRIC = 'METRIC'
+}
+
+export class ProcessingJob extends Model<InferAttributes<ProcessingJob>, InferCreationAttributes<ProcessingJob>> {
   declare id: string
   declare domainId: ForeignKey<Domain['id']>
 
-  declare fileName: string
+  declare type: JobType
+  declare subject: string
   declare status: JobStatus
   declare message: string
 
@@ -280,14 +286,18 @@ Domain.init(
   }
 )
 
-FileProcessingJob.init(
+ProcessingJob.init(
   {
     id: {
       type: DataTypes.STRING(128),
       autoIncrement: false,
       primaryKey: true
     },
-    fileName: {
+    type: {
+      type: DataTypes.STRING(128),
+      allowNull: false
+    },
+    subject: {
       type: DataTypes.STRING(128)
     },
     status: {
@@ -300,7 +310,7 @@ FileProcessingJob.init(
     updatedAt: DataTypes.DATE
   },
   {
-    tableName: 'fileprocessingjobs',
+    tableName: 'processingjobs',
     sequelize
   }
 )
@@ -740,12 +750,12 @@ Domain.belongsTo(User, {
   foreignKey: 'ownerUsername'
 })
 
-Domain.hasMany(FileProcessingJob, {
+Domain.hasMany(ProcessingJob, {
   sourceKey: 'id',
   foreignKey: 'domainId',
-  as: 'fileprocessingjobs'
+  as: 'processingjobs'
 })
-FileProcessingJob.belongsTo(Domain, {
+ProcessingJob.belongsTo(Domain, {
   foreignKey: 'domainId'
 })
 

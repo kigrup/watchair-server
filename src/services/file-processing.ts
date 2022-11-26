@@ -1,6 +1,6 @@
 import path from 'path'
-import { FileProcessingJob, JobStatus } from '../types'
-import { endFileProcessingJob } from './jobs'
+import { ProcessingJob, JobStatus } from '../types'
+import { endProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
 import { createAuthors, createChairs, createPCMembers, createSeniorPCMembers } from './persons'
@@ -18,11 +18,11 @@ const SUBMISSION_ASSIGNMENT_WORKSHEET_NAME = 'Submission assignment'
 const SCORES_WORKSHEET_NAME = 'Review field scores'
 const REVIEWS_WORKSHEET_NAME = 'Reviews'
 
-export const processJob = async (job: FileProcessingJob): Promise<void> => {
+export const processJob = async (job: ProcessingJob): Promise<void> => {
   console.log(`services::processing::processJob: Started processing job ${job.id} for domain ${job.domainId}`)
 
   try {
-    const filePath = path.join(__dirname, '..', '..', 'data', 'uploads', job.fileName)
+    const filePath = path.join(__dirname, '..', '..', 'data', 'uploads', job.subject)
     console.log(`services::processing::processJob: Using filePath= ${filePath}`)
 
     const workbookBuffer: Buffer = readFileSync(filePath)
@@ -48,20 +48,20 @@ export const processJob = async (job: FileProcessingJob): Promise<void> => {
       await processReviews(job, workbook.Sheets[REVIEWS_WORKSHEET_NAME])
     }
 
-    void endFileProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
+    await endProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
   } catch (error) {
     console.log(`services::processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
     if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {
-      void endFileProcessingJob(job, JobStatus.FAILED, error.original.message)
+      await endProcessingJob(job, JobStatus.FAILED, error.original.message)
     } else if (error instanceof Error) {
-      void endFileProcessingJob(job, JobStatus.FAILED, error.message)
+      await endProcessingJob(job, JobStatus.FAILED, error.message)
     } else {
-      void endFileProcessingJob(job, JobStatus.FAILED, 'Unknown error')
+      await endProcessingJob(job, JobStatus.FAILED, 'Unknown error')
     }
   }
 }
 
-const processPersons = async (job: FileProcessingJob, committeeWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
+const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
   console.log('services::processing::processPersons: Processing committee members and authors worksheets')
   const committeeData = utils.sheet_to_json(committeeWorksheet)
   const modelObjects: any = {
@@ -110,7 +110,7 @@ const processPersons = async (job: FileProcessingJob, committeeWorksheet: WorkSh
   ])
 }
 
-const processSubmissions = async (_job: FileProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
+const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
   console.log('services::processing::processSubmissions: Processing submissions worksheets')
   const submissionsData = utils.sheet_to_json(submissionsWorksheet)
   const submissionsModelObjects = submissionsData.map((obj: any) => {
@@ -136,7 +136,7 @@ const processSubmissions = async (_job: FileProcessingJob, submissionsWorksheet:
   await createSubmissionAuthorships(modelObjects)
 }
 
-const processAssignments = async (_job: FileProcessingJob, assignmentsWorksheet: WorkSheet): Promise<void> => {
+const processAssignments = async (_job: ProcessingJob, assignmentsWorksheet: WorkSheet): Promise<void> => {
   console.log('services::processing::processAssignments: Processing assignment worksheets')
   const assignmentsData = utils.sheet_to_json(assignmentsWorksheet)
   const assignmentsModelObjects = assignmentsData.map((obj: any) => {
@@ -151,7 +151,7 @@ const processAssignments = async (_job: FileProcessingJob, assignmentsWorksheet:
   await createAssignments(assignmentsModelObjects)
 }
 
-const processScores = async (_job: FileProcessingJob, scoresWorksheet: WorkSheet): Promise<void> => {
+const processScores = async (_job: ProcessingJob, scoresWorksheet: WorkSheet): Promise<void> => {
   console.log('services::processing::processScores: Processing scores worksheet')
   const reviewScoresData = utils.sheet_to_json(scoresWorksheet)
   let reviewScoresModelObjects = reviewScoresData.filter((obj: any) => {
@@ -188,7 +188,7 @@ const processScores = async (_job: FileProcessingJob, scoresWorksheet: WorkSheet
   ])
 }
 
-const processReviews = async (_job: FileProcessingJob, reviewsWorksheet: WorkSheet): Promise<void> => {
+const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet): Promise<void> => {
   console.log('services::processing::processReviews: Processing reviews worksheet')
   const reviewsData = utils.sheet_to_json(reviewsWorksheet)
   const reviewsModelObjects = reviewsData.map((obj: any) => {

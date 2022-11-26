@@ -1,48 +1,51 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
-import { FileProcessingJob, JobStatus } from '../types'
+import { ProcessingJob, JobStatus, JobType } from '../types'
 import { processJob } from './file-processing'
 
-export const getFileProcessingJobs = async (): Promise<FileProcessingJob[]> => {
-  const jobs: FileProcessingJob[] = await FileProcessingJob.findAll()
+export const getProcessingJobs = async (): Promise<ProcessingJob[]> => {
+  const jobs: ProcessingJob[] = await ProcessingJob.findAll()
 
-  console.log(`services::domains::getFileProcessingJob: Retrieved FileProcessingJob: ${inspect(jobs, { depth: 1 })}`)
+  console.log(`services::domains::getProcessingJob: Retrieved ProcessingJob: ${inspect(jobs, { depth: 1 })}`)
 
   return jobs
 }
 
-export const getFileProcessingJob = async (jobId: string): Promise<FileProcessingJob | null> => {
-  const job = await FileProcessingJob.findOne({
+export const getProcessingJob = async (jobId: string): Promise<ProcessingJob | null> => {
+  const job = await ProcessingJob.findOne({
     where: {
       id: jobId
     }
   })
 
-  console.log(`services::domains::getFileProcessingJob: Retrieved FileProcessingJob: ${inspect(job, { depth: 1 })}`)
+  console.log(`services::domains::getProcessingJob: Retrieved ProcessingJob: ${inspect(job, { depth: 1 })}`)
 
   return job
 }
 
-export const createFileProcessingJob = async (fileName: string, domainId: string): Promise<FileProcessingJob> => {
-  const newJob: FileProcessingJob = await FileProcessingJob.create({
+export const createProcessingJob = async (type: JobType, subject: string, domainId: string): Promise<ProcessingJob> => {
+  const newJob: ProcessingJob = await ProcessingJob.create({
     id: nanoid(),
     domainId: domainId,
-    fileName: fileName,
+    type: type,
+    subject: subject,
     status: JobStatus.RUNNING,
     message: ''
   })
 
-  console.log(`services::domains::createFileProcessingJob: Created new FileProcessingJob: ${inspect(newJob, { depth: 1 })}`)
+  console.log(`services::domains::createProcessingJob: Created new ProcessingJob: ${inspect(newJob, { depth: 1 })}`)
 
-  void processJob(newJob)
+  if (type === JobType.FILE) {
+    void processJob(newJob)
+  }
 
   return newJob
 }
 
-export const endFileProcessingJob = async (job: FileProcessingJob, status: JobStatus, message: string): Promise<void> => {
+export const endProcessingJob = async (job: ProcessingJob, status: JobStatus, message: string): Promise<void> => {
   await job.update({
     status: status,
     message: message
   })
-  console.log(`services::jobs::endFileProcessingJob: Job ${job.id} ended with status ${status}`)
+  console.log(`services::jobs::endProcessingJob: Job ${job.id} ended with status ${status}`)
 }

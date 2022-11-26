@@ -1,11 +1,11 @@
 import { RequestHandler } from 'express-serve-static-core'
 import { StatusCodes } from 'http-status-codes'
-import { Domain, FileProcessingJob, Review, UnitMetric } from '../types'
+import { Domain, JobType, ProcessingJob, Review, UnitMetric } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
 import { createDomain, deleteDomain, getDomain, getDomains } from '../services/domains'
-import { createFileProcessingJob } from '../services/jobs'
+import { createProcessingJob } from '../services/jobs'
 import { NotFoundError } from '../errors/not-found'
 import { getPersons, Persons } from '../services/persons'
 import { getReviews } from '../services/reviews'
@@ -75,7 +75,7 @@ export const createFileHandler: RequestHandler = async (req, res, next) => {
     }
 
     const fileName: string = req.file.filename
-    const job: FileProcessingJob = await createFileProcessingJob(fileName, domainId)
+    const job: ProcessingJob = await createProcessingJob(JobType.FILE, fileName, domainId)
 
     res.status(StatusCodes.CREATED).json({
       job
