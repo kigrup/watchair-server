@@ -2,12 +2,21 @@ import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { UnitMetric } from '../types'
 
-export const getUnitMetrics = async (): Promise<UnitMetric[]> => {
-  const unitMetrics: UnitMetric[] = await UnitMetric.findAll()
+export interface Metrics {
+  unitMetrics: UnitMetric[]
+}
 
-  console.log(`services::metrics::getUnitMetrics: Retrieved UnitMetrics: ${inspect(unitMetrics, { depth: 1 })}`)
+export const getDomainMetrics = async (domainId: string): Promise<Metrics> => {
+  const results = await Promise.all([
+    getDomainUnitMetrics(domainId)
+  ])
+  const metrics: Metrics = {
+    unitMetrics: results[0]
+  }
 
-  return unitMetrics
+  console.log(`services::metrics::getUnitMetrics: Retrieved metrics for domaind ${domainId}: ${inspect(metrics, { depth: 1 })}`)
+
+  return metrics
 }
 
 export const getUnitMetric = async (unitMetricId: string): Promise<UnitMetric | null> => {
