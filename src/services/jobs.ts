@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { ProcessingJob, JobStatus, JobType } from '../types'
-import { processJob } from './file-processing'
+import { processFileJob } from './file-processing'
 
 export const getProcessingJobs = async (): Promise<ProcessingJob[]> => {
   const jobs: ProcessingJob[] = await ProcessingJob.findAll()
@@ -36,7 +36,7 @@ export const createProcessingJob = async (type: JobType, subject: string, domain
   console.log(`services::domains::createProcessingJob: Created new ProcessingJob: ${inspect(newJob, { depth: 1 })}`)
 
   if (type === JobType.FILE) {
-    void processJob(newJob)
+    void processFileJob(newJob)
   }
 
   return newJob

@@ -18,7 +18,7 @@ const SUBMISSION_ASSIGNMENT_WORKSHEET_NAME = 'Submission assignment'
 const SCORES_WORKSHEET_NAME = 'Review field scores'
 const REVIEWS_WORKSHEET_NAME = 'Reviews'
 
-export const processJob = async (job: ProcessingJob): Promise<void> => {
+export const processFileJob = async (job: ProcessingJob): Promise<void> => {
   console.log(`services::file-processing::processJob: Started processing job ${job.id} for domain ${job.domainId}`)
 
   try {
@@ -50,7 +50,7 @@ export const processJob = async (job: ProcessingJob): Promise<void> => {
 
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
 
-    await createProcessingJob(JobType.METRIC)
+    // await createProcessingJob(JobType.METRIC)
   } catch (error) {
     console.log(`services::file-processing::processJob: Raised exception: ${inspect(error, { depth: 4 })}`)
     if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {
