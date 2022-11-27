@@ -49,7 +49,7 @@ export const processFileJob = async (job: ProcessingJob): Promise<void> => {
       await processReviews(job, workbook.Sheets[REVIEWS_WORKSHEET_NAME])
     }
 
-    await endProcessingJob(job, JobStatus.COMPLETED, 'Job has been completed with no errors')
+    await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
 
     await processAllMetrics(job.domainId)
   } catch (error) {

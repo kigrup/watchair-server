@@ -32,6 +32,7 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
     }
     const unitMetric: UnitMetric = await createUnitMetric(newUnitMetric)
     console.log(`services::metric-processing::processReviewsDoneJob: Created unit metric ${unitMetric.id}`)
+    await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
   } catch (error) {
     console.log(`services::metric-processing::processReviewsDoneJob: Raised exception: ${inspect(error, { depth: 4 })}`)
     if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {
