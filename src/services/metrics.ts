@@ -1,61 +1,66 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
-import { UnitMetric } from '../types'
+import { Metric, MetricHeader, MetricHeaderAttributes, MetricValue, MetricValueAttributes } from '../types'
 
-export interface Metrics {
-  unitMetrics: UnitMetric[]
-}
+export const getDomainMetrics = async (domainId: string): Promise<Metric[]> => {
+  const metricHeaders = await MetricHeader.findAll({
+    where: {
+      domainId: domainId
+    },
+    include: [{
+      model: MetricValue,
+      as: 'metricValues'
+    }]
+  })
 
-export const getDomainMetrics = async (domainId: string): Promise<Metrics> => {
-  const results = await Promise.all([
-    getDomainUnitMetrics(domainId)
-  ])
-  const metrics: Metrics = {
-    unitMetrics: results[0]
-  }
+  const metrics: Metric[] = metricHeaders.map((metricHeader: MetricHeader) => {
+    const metric: Metric = {
+      id: metricHeader.id,
+      title: metricHeader.title,
+      description: metricHeader.description,
+      valueMin: metricHeader.valueMin,
+      valueMax: metricHeader.valueMax,
+      valueStep: metricHeader.valueStep,
+      valueUnit: metricHeader.valueUnit,
+      domainId: metricHeader.domainId,
+      values: (metricHeader.metricValues != null)
+        ? metricHeader.metricValues.map((metricValue: MetricValue): MetricValueAttributes => {
+          return {
+            id: metricValue.id,
+            headerId: metricValue.headerId,
+            value: metricValue.value,
+            label: metricValue.label,
+            color: metricValue.color
+          }
+        })
+        : []
+    }
+    return metric
+  })
 
-  console.log(`services::metrics::getUnitMetrics: Retrieved metrics for domaind ${domainId}: ${inspect(metrics, { depth: 1 })}`)
+  console.log(`services::metrics::getDomainMetrics: Retrieved Metrics: ${inspect(metrics, { depth: 2 })}`)
 
   return metrics
 }
 
-export const getUnitMetric = async (unitMetricId: string): Promise<UnitMetric | null> => {
-  const unitMetric = await UnitMetric.findOne({
-    where: {
-      id: unitMetricId
-    }
+export const createMetricHeader = async (metricHeaderAttributes: MetricHeaderAttributes): Promise<MetricHeader> => {
+  const metricHeader: MetricHeader = await MetricHeader.create({
+    ...metricHeaderAttributes,
+    id: nanoid()
   })
 
-  console.log(`services::metrics::getUnitMetric: Retrieved UnitMetric: ${inspect(unitMetric, { depth: 1 })}`)
+  console.log(`services::metrics::createUnitMetric: Created new UnitMetric: ${inspect(metricHeader, { depth: 1 })}`)
 
-  return unitMetric
+  return metricHeader
 }
 
-export const getDomainUnitMetrics = async (domainId: string): Promise<UnitMetric[]> => {
-  const unitMetrics = await UnitMetric.findAll({
-    where: {
-      domainId: domainId
-    }
+export const createMetricValue = async (metricValueAttributes: MetricValueAttributes): Promise<MetricValue> => {
+  const metricValue: MetricValue = await MetricValue.create({
+    ...metricValueAttributes,
+    id: nanoid()
   })
 
-  console.log(`services::metrics::getDomainUnitMetrics: Retrieved UnitMetrics: ${inspect(unitMetrics, { depth: 1 })}`)
+  console.log(`services::metrics::createUnitMetric: Created new UnitMetric: ${inspect(metricValue, { depth: 1 })}`)
 
-  return unitMetrics
-}
-
-export const createUnitMetric = async (unitMetric: any): Promise<UnitMetric> => {
-  const newUnitMetric: UnitMetric = await UnitMetric.create({
-    id: nanoid(),
-    title: unitMetric.title,
-    description: unitMetric.description,
-    value: unitMetric.value,
-    minValue: unitMetric.minValue,
-    maxValue: unitMetric.maxValue,
-    step: unitMetric.step,
-    domainId: unitMetric.domainId
-  })
-
-  console.log(`services::metrics::createUnitMetric: Created new UnitMetric: ${inspect(newUnitMetric, { depth: 1 })}`)
-
-  return newUnitMetric
+  return metricValue
 }

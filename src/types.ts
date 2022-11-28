@@ -1,4 +1,4 @@
-import { Model, InferAttributes, InferCreationAttributes, ForeignKey, CreationOptional, DataTypes, Sequelize } from 'sequelize'
+import { HasManyAddAssociationMixin, HasManyGetAssociationsMixin, Model, InferAttributes, InferCreationAttributes, ForeignKey, CreationOptional, DataTypes, Sequelize, NonAttribute, Association } from 'sequelize'
 
 export const sequelize = new Sequelize({
   dialect: 'sqlite',
@@ -40,7 +40,8 @@ export enum JobSubtype {
   // Type: FILE
   EXCEL = 'EXCEL',
   // Type: METRIC
-  REVIEWS_DONE = 'REVIEWS DONE'
+  REVIEWS_DONE = 'REVIEWS DONE',
+  SUBMISSION_ACCEPTANCE = 'SUBMISSION ACCEPTANCE'
 }
 
 export class ProcessingJob extends Model<InferAttributes<ProcessingJob>, InferCreationAttributes<ProcessingJob>> {
@@ -57,22 +58,69 @@ export class ProcessingJob extends Model<InferAttributes<ProcessingJob>, InferCr
   declare updatedAt: CreationOptional<Date>
 }
 
-export class UnitMetric extends Model<InferAttributes<UnitMetric>, InferCreationAttributes<UnitMetric>> {
+export interface MetricHeaderAttributes {
+  id: string
+
+  title: string
+  description: string
+
+  valueMin: number
+  valueMax: number
+  valueStep: number
+  valueUnit: string
+
+  domainId: string
+}
+export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCreationAttributes<MetricHeader>> implements MetricHeader {
   declare id: string
 
   declare title: string
   declare description: CreationOptional<string>
 
+  declare valueMin: CreationOptional<number>
+  declare valueMax: CreationOptional<number>
+  declare valueStep: CreationOptional<number>
+  declare valueUnit: string
+
+  declare createdAt: CreationOptional<Date>
+  declare updatedAt: CreationOptional<Date>
+  declare domainId: ForeignKey<Domain['id']>
+
+  declare getMetricValues: HasManyGetAssociationsMixin<MetricValue>
+  declare addMetricValue: HasManyAddAssociationMixin<MetricValue, number>
+
+  declare metricValues?: NonAttribute<MetricValue[]>
+
+  declare static associations: {
+    metricValues: Association<MetricHeader, MetricValue>
+  }
+}
+
+export interface MetricValueAttributes {
+  id: string
+  headerId: string
+
+  value: number
+  label: string
+
+  color: `#${string}`
+}
+export class MetricValue extends Model<InferAttributes<MetricValue>, InferCreationAttributes<MetricValue>> implements MetricValueAttributes {
+  declare id: string
+  declare headerId: ForeignKey<MetricHeader['id']>
+
   declare value: number
-  declare minValue: CreationOptional<number>
-  declare maxValue: CreationOptional<number>
-  declare step: CreationOptional<number>
+  declare label: string
+
+  declare color: CreationOptional<`#${string}`>
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
 
-  declare domainId: ForeignKey<Domain['id']>
+  declare metricHeader?: NonAttribute<MetricHeader>
 }
+
+export type Metric = MetricHeaderAttributes & { values: MetricValueAttributes[] }
 
 export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>> {
   declare id: string
@@ -327,7 +375,7 @@ ProcessingJob.init(
   }
 )
 
-UnitMetric.init(
+MetricHeader.init(
   {
     id: {
       type: DataTypes.STRING(128),
@@ -342,27 +390,55 @@ UnitMetric.init(
       type: DataTypes.STRING(256),
       allowNull: true
     },
-    value: {
+    valueMin: {
       type: DataTypes.FLOAT,
       allowNull: false
     },
-    minValue: {
+    valueMax: {
       type: DataTypes.FLOAT,
       allowNull: true
     },
-    maxValue: {
+    valueStep: {
       type: DataTypes.FLOAT,
       allowNull: true
     },
-    step: {
-      type: DataTypes.FLOAT,
-      allowNull: true
+    valueUnit: {
+      type: DataTypes.STRING,
+      allowNull: false
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
   },
   {
-    tableName: 'unitmetric',
+    tableName: 'MetricHeaders',
+    sequelize
+  }
+)
+
+MetricValue.init(
+  {
+    id: {
+      type: DataTypes.STRING(128),
+      autoIncrement: false,
+      primaryKey: true
+    },
+    value: {
+      type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    label: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    color: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE
+  },
+  {
+    tableName: 'MetricValues',
     sequelize
   }
 )
@@ -772,13 +848,24 @@ ProcessingJob.belongsTo(Domain, {
   as: 'jobdomain'
 })
 
-Domain.hasMany(UnitMetric, {
+Domain.hasMany(MetricHeader, {
   sourceKey: 'id',
   foreignKey: 'domainId',
-  as: 'unitmetrics'
+  as: 'metricHeaders'
 })
-UnitMetric.belongsTo(Domain, {
-  foreignKey: 'domainId'
+MetricHeader.belongsTo(Domain, {
+  foreignKey: 'domainId',
+  as: 'metricDomain'
+})
+
+MetricHeader.hasMany(MetricValue, {
+  sourceKey: 'id',
+  foreignKey: 'headerId',
+  as: 'metricValues'
+})
+MetricValue.belongsTo(MetricHeader, {
+  foreignKey: 'headerId',
+  as: 'metricHeader'
 })
 
 Domain.hasMany(Person, {
