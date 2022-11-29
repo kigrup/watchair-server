@@ -1,20 +1,26 @@
-import { PCMember, Person, Review } from '../types'
+import { PCMember, Person, Review, ReviewScore } from '../types'
 
 export const getDomainReviews = async (domainId: string): Promise<Review[]> => {
   const reviews = await Review.findAll({
-    include: [{
-      model: PCMember,
-      as: 'reviewer',
-      required: true,
-      include: [{
-        model: Person,
-        as: 'person',
+    include: [
+      {
+        model: PCMember,
+        as: 'reviewer',
         required: true,
-        where: {
-          domainId: domainId
-        }
-      }]
-    }]
+        include: [{
+          model: Person,
+          as: 'person',
+          required: true,
+          where: {
+            domainId: domainId
+          }
+        }]
+      },
+      {
+        model: ReviewScore,
+        as: 'reviewScore'
+      }
+    ]
   })
 
   console.log(`services::reviews::getReviews: Retrieved all ${reviews.length} reviews for domain ${domainId}. `)

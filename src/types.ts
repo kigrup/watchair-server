@@ -231,16 +231,31 @@ export class Review extends Model<InferAttributes<Review>, InferCreationAttribut
 
   declare content: string
 
-  declare reviewScore: ForeignKey<ReviewScore['value']>
+  declare reviewScoreValue: ForeignKey<ReviewScore['value']>
   declare confidence: ForeignKey<Confidence['value']>
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
+
+  declare reviewer?: NonAttribute<PCMember>
+  declare reviewScore?: NonAttribute<ReviewScore>
 }
 
-export class ReviewScore extends Model<InferAttributes<ReviewScore>, InferCreationAttributes<ReviewScore>> {
+export interface ReviewScoreAttributes {
+  value: number
+  explanation: string
+}
+export class ReviewScore extends Model<InferAttributes<ReviewScore>, InferCreationAttributes<ReviewScore>> implements ReviewScoreAttributes {
   declare value: number
   declare explanation: string
+
+  declare getReviewsWithThisScore: HasManyGetAssociationsMixin<Review>
+
+  declare reviewsWithThisScore?: NonAttribute<Review[]>
+
+  declare static associations: {
+    reviewsWithThisScore: Association<ReviewScore, Review>
+  }
 }
 
 export class Confidence extends Model<InferAttributes<Confidence>, InferCreationAttributes<Confidence>> {
@@ -717,7 +732,7 @@ ReviewScore.init(
     }
   },
   {
-    tableName: 'reviewscores',
+    tableName: 'ReviewScores',
     sequelize
   }
 )
@@ -1007,11 +1022,12 @@ Review.belongsTo(Confidence, {
 
 ReviewScore.hasMany(Review, {
   sourceKey: 'value',
-  foreignKey: 'reviewScore',
-  as: 'reviews'
+  foreignKey: 'reviewScoreValue',
+  as: 'reviewsWithThisScore'
 })
 Review.belongsTo(ReviewScore, {
-  foreignKey: 'reviewScore'
+  foreignKey: 'reviewScoreValue',
+  as: 'reviewScore'
 })
 
 Decision.hasMany(Submission, {

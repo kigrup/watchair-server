@@ -49,7 +49,7 @@ export const createMetricHeader = async (metricHeaderAttributes: MetricHeaderAtt
     id: nanoid()
   })
 
-  console.log(`services::metrics::createUnitMetric: Created new UnitMetric: ${inspect(metricHeader, { depth: 1 })}`)
+  console.log(`services::metrics::createMetricHeader: Created new MetricHeader: ${inspect(metricHeader, { depth: 1 })}`)
 
   return metricHeader
 }
@@ -60,7 +60,19 @@ export const createMetricValue = async (metricValueAttributes: MetricValueAttrib
     id: nanoid()
   })
 
-  console.log(`services::metrics::createUnitMetric: Created new UnitMetric: ${inspect(metricValue, { depth: 1 })}`)
+  console.log(`services::metrics::createMetricValue: Created new MetricValue: ${inspect(metricValue, { depth: 1 })}`)
 
   return metricValue
+}
+
+export const createMetricValues = async (metricValueAttributes: MetricValueAttributes[]): Promise<MetricValue[]> => {
+  const metricValues: MetricValue[] = []
+  for (let i = 0; i < metricValueAttributes.length; i++) {
+    const metricValue: MetricValue = await createMetricValue(metricValueAttributes[i])
+    metricValues.push(metricValue)
+  }
+
+  console.log(`services::metrics::createMetricValues: Created new MetricValues: ${inspect(metricValues, { depth: 1 })}`)
+
+  return metricValues
 }

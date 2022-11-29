@@ -209,7 +209,7 @@ const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet):
 
       content: obj.text,
 
-      reviewScore: (reviewScoreValue !== null ? Number(reviewScoreValue[0]) : undefined),
+      reviewScoreValue: (reviewScoreValue !== null ? Number(reviewScoreValue[0]) : undefined),
       confidence: (reviewConfidenceValue !== null ? Number(reviewConfidenceValue[0]) : undefined)
     }
     return modelObject
