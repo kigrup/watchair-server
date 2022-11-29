@@ -76,7 +76,7 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
       '-3': '#960000',
       '-2': '#ff4d4d',
       '-1': '#ffb0b0',
-      'not reviewed yet': '##969696',
+      'not reviewed yet': '#c2c2c2',
       1: '#f9ffa6',
       2: '#b5ff8a',
       3: '#83ff3b'
