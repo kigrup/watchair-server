@@ -1,4 +1,13 @@
+import { inspect } from 'util'
 import { Confidence, ReviewScore } from '../types'
+
+export const getReviewScores = async (): Promise<ReviewScore[]> => {
+  const reviewScores = await ReviewScore.findAll()
+
+  console.log(`services::scores::getReviewScores: Retrieved review scores: ${inspect(reviewScores, { depth: 1 })}`)
+
+  return reviewScores
+}
 
 export const createReviewScores = async (reviewScores: any): Promise<ReviewScore[]> => {
   console.log('services::scores::createReviewScores: Bulk creating review scores...')
