@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { getFileExtension } from '../utils/string'
 import { getJobHandler, getJobsHandler } from '../controllers/jobs'
+import { logger } from '../utils/logger'
 
 const ALLOWED_EXTENSIONS = ['.xlsx', '.xls']
 
@@ -22,15 +23,15 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   fileFilter (_req, file, callback) {
-    console.log(`routes::domains: Received file form: ${inspect(file, { depth: 1 })}`)
+    logger.log('info', `routes::domains: Received file form: ${inspect(file, { depth: 1 })}`)
     const fileExtension: string | null = getFileExtension(file.originalname)
     if (fileExtension === null) {
-      console.log('routes::domains: File filtered! Name has no file extension.')
+      logger.log('info', 'routes::domains: File filtered! Name has no file extension.')
       callback(null, false)
     } else if (ALLOWED_EXTENSIONS.includes(fileExtension)) {
       callback(null, true)
     } else {
-      console.log('routes::domains: File filtered! Extension not allowed.')
+      logger.log('info', 'routes::domains: File filtered! Extension not allowed.')
       callback(null, false)
     }
   }

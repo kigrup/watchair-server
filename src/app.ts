@@ -1,4 +1,5 @@
 import express from 'express'
+import { logger } from './utils/logger'
 import { StatusCodes } from 'http-status-codes'
 import { corsAllow } from './middlewares/access-control'
 import { errorHandlerMiddleware } from './middlewares/error-handler'
@@ -16,8 +17,8 @@ app.use('/api/v1/fields', fieldsRouter)
 app.use(errorHandlerMiddleware)
 
 app.get('/api/ping', (_req, res) => {
-  console.log('Incoming connection...')
-  console.log(__dirname)
+  logger.log('info', 'Incoming connection...')
+  logger.log('info', __dirname)
   res.status(StatusCodes.OK).json({ pong: new Date().toISOString() })
 })
 

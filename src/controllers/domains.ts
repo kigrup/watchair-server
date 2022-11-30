@@ -10,9 +10,10 @@ import { NotFoundError } from '../errors/not-found'
 import { getPersons, Persons } from '../services/persons'
 import { getDomainReviews } from '../services/reviews'
 import { getDomainMetrics } from '../services/metrics'
+import { logger } from '../utils/logger'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
-  console.log('controllers::domains::getDomainHandler: Received domains GET request')
+  logger.log('info', 'controllers::domains::getDomainHandler: Received domains GET request')
   try {
     const domainId = req.params.domainId
     const domain: Domain | null = await getDomain(domainId)
@@ -26,7 +27,7 @@ export const getDomainHandler: RequestHandler = async (req, res, next) => {
 }
 
 export const getDomainsHandler: RequestHandler = async (_req, res, next) => {
-  console.log('controllers::domains::getDomainsHandler: Received domains GET request')
+  logger.log('info', 'controllers::domains::getDomainsHandler: Received domains GET request')
   try {
     const domains: Domain[] = await getDomains()
     res.status(StatusCodes.OK).json(domains)
@@ -36,7 +37,7 @@ export const getDomainsHandler: RequestHandler = async (_req, res, next) => {
 }
 
 export const createDomainHandler: RequestHandler = async (req, res, next) => {
-  console.log('controllers::domains::getDomainsHandler: Received domains POST request')
+  logger.log('info', 'controllers::domains::getDomainsHandler: Received domains POST request')
   try {
     validateNewDomain(req)
     const name: string = req.body.name
@@ -49,7 +50,7 @@ export const createDomainHandler: RequestHandler = async (req, res, next) => {
 }
 
 export const deleteDomainHandler: RequestHandler = async (req, res, next) => {
-  console.log('controllers::domains::deleteDomainHandler: Received domains DELETE request')
+  logger.log('info', 'controllers::domains::deleteDomainHandler: Received domains DELETE request')
   try {
     const domainId = req.params.domainId
     const domainDeleted: boolean = await deleteDomain(domainId)
@@ -63,7 +64,7 @@ export const deleteDomainHandler: RequestHandler = async (req, res, next) => {
 }
 
 export const createFileHandler: RequestHandler = async (req, res, next) => {
-  console.log(`controllers::domains:createFileHandler: Received createFile request with file: ${(req.file != null) ? inspect(req.file, { depth: 1 }) : 'none'}`)
+  logger.log('info', `controllers::domains:createFileHandler: Received createFile request with file: ${(req.file != null) ? inspect(req.file, { depth: 1 }) : 'none'}`)
   try {
     const domainId = req.params.domainId
     if (await getDomain(domainId) === null) {
@@ -86,7 +87,7 @@ export const createFileHandler: RequestHandler = async (req, res, next) => {
 }
 
 export const getPersonsHandler: RequestHandler = async (req, res, next) => {
-  console.log('controllers::domains::getPersonsHandler: Received persons GET request')
+  logger.log('info', 'controllers::domains::getPersonsHandler: Received persons GET request')
   try {
     const domainId = req.params.domainId
     if (await getDomain(domainId) === null) {
@@ -100,7 +101,7 @@ export const getPersonsHandler: RequestHandler = async (req, res, next) => {
 }
 
 export const getReviewsHandler: RequestHandler = async (req, res, next) => {
-  console.log('controllers::domains::getReviewsHandler: Received reviews GET request')
+  logger.log('info', 'controllers::domains::getReviewsHandler: Received reviews GET request')
   try {
     const domainId = req.params.domainId
     if (await getDomain(domainId) === null) {
@@ -114,7 +115,7 @@ export const getReviewsHandler: RequestHandler = async (req, res, next) => {
 }
 
 export const getMetricsHandler: RequestHandler = async (req, res, next) => {
-  console.log('controllers::domains::getMetricsHandler: Received metrics GET request')
+  logger.log('info', 'controllers::domains::getMetricsHandler: Received metrics GET request')
   try {
     const domainId = req.params.domainId
     if (await getDomain(domainId) === null) {

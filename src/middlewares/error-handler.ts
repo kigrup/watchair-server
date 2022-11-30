@@ -1,5 +1,6 @@
 import { ErrorRequestHandler } from 'express'
 import { StatusCodes } from 'http-status-codes'
+import { logger } from '../utils/logger'
 
 interface CustomError {
   statusCode: StatusCodes
@@ -13,7 +14,7 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (err, _req, res, _nex
     message: err.message
   }
 
-  console.log(`middlewares::error-handler::errorHandlerMiddleware: Error thrown, statusCode:${customError.statusCode} with message '${customError.message}'`)
+  logger.log('info', `middlewares::error-handler::errorHandlerMiddleware: Error thrown, statusCode:${customError.statusCode} with message '${customError.message}'`)
 
   return res.status(customError.statusCode).json({
     error: customError.message

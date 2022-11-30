@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger'
 import { ForeignKeyConstraintError, UniqueConstraintError } from 'sequelize'
 import { inspect } from 'util'
 import { Assignment, JobStatus, JobSubtype, JobType, ProcessingJob, Review, MetricHeader, MetricHeaderAttributes, MetricValueAttributes, ReviewScore } from '../types'
@@ -8,7 +9,7 @@ import { getReviewScores } from './scores'
 import { getDomainAssignments } from './submissions'
 
 export const processAllMetrics = async (domainId: string): Promise<void> => {
-  console.log(`services::metric-processing::processAllMetrics: Queuing all metrics for processing for domain ${domainId}`)
+  logger.log('info', `services::metric-processing::processAllMetrics: Queuing all metrics for processing for domain ${domainId}`)
 
   const reviewsDoneJob: ProcessingJob = await createProcessingJob(JobType.METRIC, JobSubtype.REVIEWS_DONE, 'Review assignments finished', domainId)
   await processReviewsDoneJob(reviewsDoneJob)
@@ -18,7 +19,7 @@ export const processAllMetrics = async (domainId: string): Promise<void> => {
 }
 
 const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
-  console.log(`services::metric-processing::processReviewsDoneJob: Started processing metric job of subtype '${job.subtype}' with id ${job.id} for domain ${job.domainId}`)
+  logger.log('info', `services::metric-processing::processReviewsDoneJob: Started processing metric job of subtype '${job.subtype}' with id ${job.id} for domain ${job.domainId}`)
   try {
     const assignments: Assignment[] = await getDomainAssignments(job.domainId)
     const reviews: Review[] = await getDomainReviews(job.domainId)
@@ -44,9 +45,9 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
     }
     await createMetricValue(metricValueAttributes)
 
-    console.log(`services::metric-processing::processReviewsDoneJob: Created metric ${metricHeader.id}`)
+    logger.log('info', `services::metric-processing::processReviewsDoneJob: Created metric ${metricHeader.id}`)
 
-    console.log(`services::metric-processing::processReviewsDoneJob: Finished processing metric job with id ${job.id} successfully`)
+    logger.log('info', `services::metric-processing::processReviewsDoneJob: Finished processing metric job with id ${job.id} successfully`)
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
   } catch (error) {
     await handleJobError(error, job)
@@ -54,7 +55,7 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
 }
 
 const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void> => {
-  console.log(`services::metric-processing::processSubmissionAcceptanceJob: Started processing metric job of subtype '${job.subtype}' with id ${job.id} for domain ${job.domainId}`)
+  logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Started processing metric job of subtype '${job.subtype}' with id ${job.id} for domain ${job.domainId}`)
   try {
     const metricHeaderAttributes: MetricHeaderAttributes = {
       id: '',
@@ -102,9 +103,9 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
     })
     await createMetricValues(metricValues)
 
-    console.log(`services::metric-processing::processSubmissionAcceptanceJob: Created metric ${metricHeader.id}`)
+    logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Created metric ${metricHeader.id}`)
 
-    console.log(`services::metric-processing::processSubmissionAcceptanceJob: Finished processing metric job with id ${job.id} successfully`)
+    logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Finished processing metric job with id ${job.id} successfully`)
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
   } catch (error) {
     await handleJobError(error, job)
@@ -112,7 +113,7 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
 }
 
 const handleJobError = async (error: unknown, job: ProcessingJob): Promise<void> => {
-  console.log(`services::metric-processing::handleJobError: Raised exception: ${inspect(error, { depth: 4 })}`)
+  logger.log('info', `services::metric-processing::handleJobError: Raised exception: ${inspect(error, { depth: 4 })}`)
   if (error instanceof UniqueConstraintError || error instanceof ForeignKeyConstraintError) {
     await endProcessingJob(job, JobStatus.FAILED, error.original.message)
   } else if (error instanceof Error) {

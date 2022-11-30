@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
+import { logger } from '../utils/logger'
 import { ProcessingJob, JobStatus, JobType, JobSubtype } from '../types'
 import { processFileJob } from './file-processing'
 
@@ -10,7 +11,7 @@ export const getDomainProcessingJobs = async (domainId: string): Promise<Process
     }
   })
 
-  console.log(`services::domains::getDomainProcessingJobs: Retrieved domain ${domainId} ProcessingJob: ${inspect(jobs, { depth: 1 })}`)
+  logger.log('info', `services::domains::getDomainProcessingJobs: Retrieved domain ${domainId} ProcessingJob: ${inspect(jobs, { depth: 1 })}`)
 
   return jobs
 }
@@ -22,7 +23,7 @@ export const getProcessingJob = async (jobId: string): Promise<ProcessingJob | n
     }
   })
 
-  console.log(`services::domains::getProcessingJob: Retrieved ProcessingJob: ${inspect(job, { depth: 1 })}`)
+  logger.log('info', `services::domains::getProcessingJob: Retrieved ProcessingJob: ${inspect(job, { depth: 1 })}`)
 
   return job
 }
@@ -38,7 +39,7 @@ export const createProcessingJob = async (type: JobType, subtype: JobSubtype, su
     message: ''
   })
 
-  console.log(`services::domains::createProcessingJob: Created new ProcessingJob: ${inspect(newJob, { depth: 1 })}`)
+  logger.log('info', `services::domains::createProcessingJob: Created new ProcessingJob: ${inspect(newJob, { depth: 1 })}`)
 
   if (type === JobType.FILE) {
     void processFileJob(newJob)
@@ -52,5 +53,5 @@ export const endProcessingJob = async (job: ProcessingJob, status: JobStatus, me
     status: status,
     message: message
   })
-  console.log(`services::jobs::endProcessingJob: Job ${job.id} ended with status ${status}`)
+  logger.log('info', `services::jobs::endProcessingJob: Job ${job.id} ended with status ${status}`)
 }

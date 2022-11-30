@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { Domain } from '../types'
+import { logger } from '../utils/logger'
 
 export const getDomain = async (domainId: string): Promise<Domain | null> => {
   const domain = await Domain.findOne({
@@ -9,7 +10,7 @@ export const getDomain = async (domainId: string): Promise<Domain | null> => {
     }
   })
 
-  console.log(`services::domains::getDomain: Retrieved Domain: ${inspect(domain, { depth: 1 })}`)
+  logger.log('info', `services::domains::getDomain: Retrieved Domain: ${inspect(domain, { depth: 1 })}`)
 
   return domain
 }
@@ -22,7 +23,7 @@ export const getDomains = async (): Promise<Domain[]> => {
     ]
   })
 
-  console.log(`services::domains::getDomains: Retrieved all ${domains.length} domains`)
+  logger.log('info', `services::domains::getDomains: Retrieved all ${domains.length} domains`)
 
   return domains
 }
@@ -33,7 +34,7 @@ export const createDomain = async (name: string): Promise<Domain> => {
     name: name
   })
 
-  console.log(`services::domains::createDomain: Created new Domain: ${inspect(newDomain, { depth: 1 })}`)
+  logger.log('info', `services::domains::createDomain: Created new Domain: ${inspect(newDomain, { depth: 1 })}`)
 
   return newDomain
 }
@@ -42,11 +43,11 @@ export const deleteDomain = async (id: string): Promise<boolean> => {
   const domain: Domain | null = await getDomain(id)
 
   if (domain === null) {
-    console.log('services::domains::createDomain: Tried to delete nonexistent domain')
+    logger.log('info', 'services::domains::createDomain: Tried to delete nonexistent domain')
     return false
   } else {
     await domain.destroy()
-    console.log('services::domains::createDomain: Deleted domain')
+    logger.log('info', 'services::domains::createDomain: Deleted domain')
     return true
   }
 }

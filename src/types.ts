@@ -1,8 +1,10 @@
 import { HasManyAddAssociationMixin, HasManyGetAssociationsMixin, Model, InferAttributes, InferCreationAttributes, ForeignKey, CreationOptional, DataTypes, Sequelize, NonAttribute, Association } from 'sequelize'
+import { logger } from './utils/logger'
 
 export const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: './data/database.sqlite'
+  storage: './data/database.sqlite',
+  logging: (msg) => logger.log('info', msg)
 })
 
 // Class declarations
@@ -122,7 +124,13 @@ export class MetricValue extends Model<InferAttributes<MetricValue>, InferCreati
 
 export type Metric = MetricHeaderAttributes & { values: MetricValueAttributes[] }
 
-export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>> {
+export interface PersonAttributes {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  domainId: string
+}
+export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>> implements PersonAttributes {
   declare id: string
   declare firstName: string | null
   declare lastName: string | null
@@ -133,12 +141,20 @@ export class Person extends Model<InferAttributes<Person>, InferCreationAttribut
   declare domainId: ForeignKey<Domain['id']>
 }
 
-export class Author extends Model<InferAttributes<Author>, InferCreationAttributes<Author>> {
+export interface AuthorAttributes {
+  id: string
+  personId: string
+}
+export class Author extends Model<InferAttributes<Author>, InferCreationAttributes<Author>> implements AuthorAttributes {
   declare id: string
   declare personId: ForeignKey<Person['id']>
 }
 
-export class PCMember extends Model<InferAttributes<PCMember>, InferCreationAttributes<PCMember>> {
+export interface PCMemberAttributes {
+  id: string
+  personId: string
+}
+export class PCMember extends Model<InferAttributes<PCMember>, InferCreationAttributes<PCMember>> implements PCMember {
   declare id: string
   declare personId: ForeignKey<Person['id']>
 }
@@ -150,12 +166,20 @@ export class ConflictOfInterest extends Model<InferAttributes<ConflictOfInterest
   declare pcMemberId: ForeignKey<PCMember['id']>
 }
 
-export class SeniorPCMember extends Model<InferAttributes<SeniorPCMember>, InferCreationAttributes<SeniorPCMember>> {
+export interface SeniorPCMemberAttributes {
+  id: string
+  pcMemberId: string
+}
+export class SeniorPCMember extends Model<InferAttributes<SeniorPCMember>, InferCreationAttributes<SeniorPCMember>> implements SeniorPCMemberAttributes {
   declare id: string
   declare pcMemberId: ForeignKey<PCMember['id']>
 }
 
-export class Chair extends Model<InferAttributes<Chair>, InferCreationAttributes<Chair>> {
+export interface ChairAttributes {
+  id: string
+  seniorPcMemberId: string
+}
+export class Chair extends Model<InferAttributes<Chair>, InferCreationAttributes<Chair>> implements ChairAttributes {
   declare id: string
   declare seniorPcMemberId: ForeignKey<SeniorPCMember['id']>
 }

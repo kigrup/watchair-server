@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
 import { Metric, MetricHeader, MetricHeaderAttributes, MetricValue, MetricValueAttributes } from '../types'
+import { logger } from '../utils/logger'
 
 export const getDomainMetrics = async (domainId: string): Promise<Metric[]> => {
   const metricHeaders = await MetricHeader.findAll({
@@ -38,7 +39,7 @@ export const getDomainMetrics = async (domainId: string): Promise<Metric[]> => {
     return metric
   })
 
-  console.log(`services::metrics::getDomainMetrics: Retrieved Metrics: ${inspect(metrics, { depth: 2 })}`)
+  logger.log('info', `services::metrics::getDomainMetrics: Retrieved Metrics: ${inspect(metrics, { depth: 2 })}`)
 
   return metrics
 }
@@ -49,7 +50,7 @@ export const createMetricHeader = async (metricHeaderAttributes: MetricHeaderAtt
     id: nanoid()
   })
 
-  console.log(`services::metrics::createMetricHeader: Created new MetricHeader: ${inspect(metricHeader, { depth: 1 })}`)
+  logger.log('info', `services::metrics::createMetricHeader: Created new MetricHeader: ${inspect(metricHeader, { depth: 1 })}`)
 
   return metricHeader
 }
@@ -60,7 +61,7 @@ export const createMetricValue = async (metricValueAttributes: MetricValueAttrib
     id: nanoid()
   })
 
-  console.log(`services::metrics::createMetricValue: Created new MetricValue: ${inspect(metricValue, { depth: 1 })}`)
+  logger.log('info', `services::metrics::createMetricValue: Created new MetricValue: ${inspect(metricValue, { depth: 1 })}`)
 
   return metricValue
 }
@@ -72,7 +73,7 @@ export const createMetricValues = async (metricValueAttributes: MetricValueAttri
     metricValues.push(metricValue)
   }
 
-  console.log(`services::metrics::createMetricValues: Created new MetricValues: ${inspect(metricValues, { depth: 1 })}`)
+  logger.log('info', `services::metrics::createMetricValues: Created new MetricValues: ${inspect(metricValues, { depth: 1 })}`)
 
   return metricValues
 }
