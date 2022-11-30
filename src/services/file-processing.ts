@@ -76,8 +76,8 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
   committeeData.map((obj: any) => {
     const role: string = obj.role
     const modelObject = {
-      id: obj['person #'],
-      pcMemberId: obj['#'],
+      id: obj['person #'].toString(),
+      pcMemberId: obj['#'].toString(),
       firstName: obj['first name'],
       lastName: obj['last name'],
       domainId: job.domainId
@@ -91,7 +91,7 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
   const authorsData = utils.sheet_to_json(authorsWorksheet)
   authorsData.map((obj: any) => {
     const modelObject = {
-      id: obj['person #'],
+      id: obj['person #'].toString(),
       firstName: obj['first name'],
       lastName: obj['last name'],
       domainId: job.domainId
@@ -118,7 +118,7 @@ const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: Wor
   const submissionsData = utils.sheet_to_json(submissionsWorksheet)
   const submissionsModelObjects = submissionsData.map((obj: any) => {
     const modelObject = {
-      id: obj['#'],
+      id: obj['#'].toString(),
       title: obj.title,
       submitted: new Date(obj.submitted),
       lastUpdated: new Date(obj['last updated'])
@@ -132,8 +132,8 @@ const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: Wor
   const modelObjects = authorsData.map((obj: any) => {
     return {
       id: nanoid(),
-      authorId: obj['person #'],
-      submissionId: obj['submission #']
+      authorId: obj['person #'].toString(),
+      submissionId: obj['submission #'].toString()
     }
   })
   await createSubmissionAuthorships(modelObjects)
@@ -145,8 +145,8 @@ const processAssignments = async (_job: ProcessingJob, assignmentsWorksheet: Wor
   const assignmentsModelObjects = assignmentsData.map((obj: any) => {
     const modelObject = {
       id: nanoid(),
-      pcMemberId: obj['member #'],
-      submissionId: obj['submission #']
+      pcMemberId: obj['member #'].toString(),
+      submissionId: obj['submission #'].toString()
     }
 
     return modelObject
@@ -201,11 +201,11 @@ const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet):
     const reviewScoreValue: string[] | null = obj.scores.match(/(?<=Overall evaluation: )(.*)(?=\r\n)/)
     const reviewConfidenceValue: string[] | null = obj.scores.match(/(?<=Reviewer's confidence: )(.*)(?=)/)
     const modelObject = {
-      id: obj['#'],
+      id: obj['#'].toString(),
       submitted: new Date(`${submittedDate}T${submittedTime}`),
 
-      pcMemberId: obj['member #'],
-      submissionId: obj['submission #'],
+      pcMemberId: obj['member #'].toString(),
+      submissionId: obj['submission #'].toString(),
 
       content: obj.text,
 
