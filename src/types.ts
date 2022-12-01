@@ -246,7 +246,16 @@ export class SubmissionFile extends Model<InferAttributes<SubmissionFile>, Infer
   declare submitted: Date
 }
 
-export class Review extends Model<InferAttributes<Review>, InferCreationAttributes<Review>> {
+export interface ReviewAttributes {
+  id: string
+  submitted: Date
+  pcMemberId: string
+  submissionId: string
+  content: string
+  reviewScoreValue: number
+  confidence: number
+}
+export class Review extends Model<InferAttributes<Review>, InferCreationAttributes<Review>> implements ReviewAttributes {
   declare id: string
   declare submitted: Date
 

@@ -1,6 +1,6 @@
 import path from 'path'
 import { logger } from '../utils/logger'
-import { ProcessingJob, JobStatus, PCMemberAttributes, PersonAttributes, SeniorPCMemberAttributes, ChairAttributes, AuthorAttributes } from '../types'
+import { ProcessingJob, JobStatus, PCMemberAttributes, PersonAttributes, SeniorPCMemberAttributes, ChairAttributes, AuthorAttributes, ReviewAttributes } from '../types'
 import { endProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
@@ -228,13 +228,13 @@ const processScores = async (_job: ProcessingJob, scoresWorksheet: WorkSheet): P
 const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet): Promise<void> => {
   logger.log('info', 'services::file-processing::processReviews: Processing reviews worksheet')
   const reviewsData = utils.sheet_to_json(reviewsWorksheet)
-  const reviewsModelObjects = reviewsData.map((obj: any) => {
+
+  const reviews: ReviewAttributes[] = reviewsData.map((obj: any): ReviewAttributes => {
     const submittedDate: string = obj.date
     const submittedTime: string = obj.time
 
-    const reviewScoreValue: string[] | null = obj.scores.match(/(?<=Overall evaluation: )(.*)(?=\r\n)/)
     const reviewConfidenceValue: string[] | null = obj.scores.match(/(?<=Reviewer's confidence: )(.*)(?=)/)
-    const modelObject = {
+    const modelObject: ReviewAttributes = {
       id: obj['#'].toString(),
       submitted: new Date(`${submittedDate}T${submittedTime}`),
 
@@ -243,12 +243,11 @@ const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet):
 
       content: obj.text,
 
-      reviewScoreValue: (reviewScoreValue !== null ? Number(reviewScoreValue[0]) : undefined),
-      confidence: (reviewConfidenceValue !== null ? Number(reviewConfidenceValue[0]) : undefined)
+      reviewScoreValue: Number(obj['total score']),
+      confidence: (reviewConfidenceValue !== null ? Number(reviewConfidenceValue[0]) : 3)
     }
     return modelObject
   })
   logger.log('info', 'reviews')
-  logger.log('info', reviewsModelObjects)
-  await createReviews(reviewsModelObjects)
+  await createReviews(reviews)
 }

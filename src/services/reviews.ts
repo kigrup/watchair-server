@@ -1,5 +1,5 @@
 import { logger } from '../utils/logger'
-import { PCMember, Person, Review, ReviewScore } from '../types'
+import { PCMember, Person, Review, ReviewAttributes, ReviewScore } from '../types'
 
 export const getDomainReviews = async (domainId: string): Promise<Review[]> => {
   const reviews = await Review.findAll({
@@ -29,7 +29,7 @@ export const getDomainReviews = async (domainId: string): Promise<Review[]> => {
   return reviews
 }
 
-export const createReviews = async (reviews: any): Promise<Review[]> => {
+export const createReviews = async (reviews: ReviewAttributes[]): Promise<Review[]> => {
   logger.log('info', 'services::reviews::createReviews: Bulk creating reviews...')
 
   const createdReviews: Review[] = []
@@ -37,7 +37,13 @@ export const createReviews = async (reviews: any): Promise<Review[]> => {
   for (let i = 0; i < reviews.length; i++) {
     const review = reviews[i]
     logger.log('info', 'servies::reviews::createReviews: creating review:')
-    logger.log('info', review)
+    logger.log('info', {
+      id: reviews[i].id,
+      pcMemberId: reviews[i].pcMemberId,
+      submissionId: reviews[i].submissionId,
+      reviewScoreValue: reviews[i].reviewScoreValue,
+      confidence: reviews[i].confidence
+    })
     const createdReview: Review = await Review.create(review)
     createdReviews.push(createdReview)
   }
