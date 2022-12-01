@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express-serve-static-core'
 import { StatusCodes } from 'http-status-codes'
-import { Domain, JobSubtype, JobType, Metric, ProcessingJob, Review } from '../types'
+import { Domain, JobSubtype, JobType, Metric, ProcessingJob, Review, Submission } from '../types'
 import { validateNewDomain } from '../validations/domains'
 import { inspect } from 'util'
 import { BadRequestError } from '../errors/bad-request'
@@ -11,6 +11,7 @@ import { getPersons, Persons } from '../services/persons'
 import { getDomainReviews } from '../services/reviews'
 import { getDomainMetrics } from '../services/metrics'
 import { logger } from '../utils/logger'
+import { getSubmissions } from '../services/submissions'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
   logger.log('info', 'controllers::domains::getDomainHandler: Received domains GET request')
@@ -95,6 +96,20 @@ export const getPersonsHandler: RequestHandler = async (req, res, next) => {
     }
     const persons: Persons = await getPersons(domainId)
     res.status(StatusCodes.OK).json(persons)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getSubmissionsHandler: RequestHandler = async (req, res, next) => {
+  logger.log('info', 'controllers::domains::getSubmissions: Received submissions GET request')
+  try {
+    const domainId = req.params.domainId
+    if (await getDomain(domainId) === null) {
+      throw new NotFoundError('Invalid Domain Id.')
+    }
+    const submissions: Submission[] = await getSubmissions(domainId)
+    res.status(StatusCodes.OK).json(submissions)
   } catch (error) {
     next(error)
   }

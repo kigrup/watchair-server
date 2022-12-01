@@ -1,5 +1,5 @@
 import express from 'express'
-import { getDomainsHandler, createDomainHandler, createFileHandler, getDomainHandler, getPersonsHandler, deleteDomainHandler, getReviewsHandler, getMetricsHandler } from '../controllers/domains'
+import { getDomainsHandler, createDomainHandler, createFileHandler, getDomainHandler, getPersonsHandler, deleteDomainHandler, getReviewsHandler, getMetricsHandler, getSubmissionsHandler } from '../controllers/domains'
 import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
@@ -53,6 +53,8 @@ router.route('/:domainId/jobs').get(getJobsHandler)
 router.route('/:domainId/jobs/:jobId').get(getJobHandler)
 
 router.route('/:domainId/persons').get(getPersonsHandler)
+
+router.route('/:domainId/submissions').get(getSubmissionsHandler)
 
 router.route('/:domainId/reviews').get(getReviewsHandler)
 

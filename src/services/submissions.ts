@@ -1,6 +1,17 @@
 import { logger } from '../utils/logger'
 import { Assignment, PCMember, Person, Submission, SubmissionAutorship } from '../types'
 
+export const getSubmissions = async (domainId: string): Promise<Submission[]> => {
+  logger.log('info', 'services::submissions::getSubmissions: Retrieving submissions...')
+
+  // TODO return only from domain id
+  const submission = await Submission.findAll()
+
+  logger.log('info', `services::submissions::getSubmissions: Done retrieving ${submission.length} submissions for domain ${domainId}`)
+
+  return submission
+}
+
 export const createSubmissions = async (submissions: any): Promise<Submission[]> => {
   logger.log('info', 'services::submissions::createSubmissions: Bulk creating submissions...')
 
