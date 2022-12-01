@@ -1,10 +1,10 @@
 import path from 'path'
 import { logger } from '../utils/logger'
-import { ProcessingJob, JobStatus } from '../types'
+import { ProcessingJob, JobStatus, PCMemberAttributes, PersonAttributes, SeniorPCMemberAttributes, ChairAttributes, AuthorAttributes } from '../types'
 import { endProcessingJob } from './jobs'
 import { readFileSync } from 'fs'
 import { read, utils, WorkBook, WorkSheet } from 'xlsx'
-import { createAuthors, createChairs, createPCMembers, createSeniorPCMembers } from './persons'
+import { createAuthors, createChairs, createPCMembers, createPersons, createSeniorPCMembers } from './persons'
 import { createAssignments, createSubmissionAuthorships, createSubmissions } from './submissions'
 import { nanoid } from 'nanoid'
 import { inspect } from 'util'
@@ -19,6 +19,10 @@ const SUBMISSIONS_WORKSHEET_NAME = 'Submissions'
 const SUBMISSION_ASSIGNMENT_WORKSHEET_NAME = 'Submission assignment'
 const SCORES_WORKSHEET_NAME = 'Review field scores'
 const REVIEWS_WORKSHEET_NAME = 'Reviews'
+
+const PC_MEMBER_ROLE_LABEL = 'PC member'
+const SENIOR_PC_MEMBER_ROLE_LABEL = 'senior PC member'
+const CHAIR_ROLE_LABEL = 'chair'
 
 export const processFileJob = async (job: ProcessingJob): Promise<void> => {
   logger.log('info', `services::file-processing::processJob: Started processing job ${job.id} for domain ${job.domainId}`)
@@ -68,50 +72,79 @@ export const processFileJob = async (job: ProcessingJob): Promise<void> => {
 const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
   logger.log('info', 'services::file-processing::processPersons: Processing committee members and authors worksheets')
   const committeeData = utils.sheet_to_json(committeeWorksheet)
-  const modelObjects: any = {
-    authors: [],
-    'PC member': [],
-    'senior PC member': [],
-    chair: []
-  }
-  committeeData.map((obj: any) => {
-    const role: string = obj.role
-    const modelObject = {
-      id: obj['person #'].toString(),
-      pcMemberId: obj['#'].toString(),
-      firstName: obj['first name'],
-      lastName: obj['last name'],
-      domainId: job.domainId
-    }
-    if (Object.keys(modelObjects).includes(role)) {
-      modelObjects[role].push(modelObject)
-    }
-    return modelObject
-  })
-
   const authorsData = utils.sheet_to_json(authorsWorksheet)
-  authorsData.map((obj: any) => {
-    const modelObject = {
+
+  const persons: PersonAttributes[] = committeeData.map((obj: any): PersonAttributes => {
+    return {
       id: obj['person #'].toString(),
-      firstName: obj['first name'],
-      lastName: obj['last name'],
+      firstName: obj['first name'].toString(),
+      lastName: obj['last name'].toString(),
       domainId: job.domainId
     }
-    const duplicateEntry: any = modelObjects.authors.find((e: any) => {
-      return (e.id === modelObject.id)
-    })
-    if (duplicateEntry === undefined) {
-      modelObjects.authors.push(modelObject)
-    }
-    return modelObject
   })
 
-  await Promise.all([
-    createChairs(modelObjects.chair),
-    createSeniorPCMembers(modelObjects['senior PC member']),
-    createPCMembers(modelObjects['PC member']),
-    createAuthors(modelObjects.authors)
-  ])
+  authorsData.map((obj: any): PersonAttributes => {
+    const authorPerson: PersonAttributes = {
+      id: obj['person #'].toString(),
+      firstName: obj['first name'].toString(),
+      lastName: obj['last name'].toString(),
+      domainId: job.domainId
+    }
+    if (persons.findIndex((person: PersonAttributes): boolean => {
+      return person.id === authorPerson.id
+    }) === -1) {
+      persons.push(authorPerson)
+    }
+    return authorPerson
+  })
+  await createPersons(persons)
+
+  const pcMembers: PCMemberAttributes[] = committeeData.filter((obj: any): boolean => {
+    return [PC_MEMBER_ROLE_LABEL, SENIOR_PC_MEMBER_ROLE_LABEL, CHAIR_ROLE_LABEL].includes(obj.role)
+  }).map((obj: any): PCMemberAttributes => {
+    return {
+      id: obj['#'].toString(),
+      personId: obj['person #'].toString()
+    }
+  })
+  await createPCMembers(pcMembers)
+
+  const seniorPcMembers: SeniorPCMemberAttributes[] = committeeData.filter((obj: any): boolean => {
+    return [SENIOR_PC_MEMBER_ROLE_LABEL, CHAIR_ROLE_LABEL].includes(obj.role)
+  }).map((obj: any): SeniorPCMemberAttributes => {
+    return {
+      id: obj['#'].toString(),
+      pcMemberId: obj['#'].toString()
+    }
+  })
+  await createSeniorPCMembers(seniorPcMembers)
+
+  const chair: ChairAttributes[] = committeeData.filter((obj: any): boolean => {
+    return [CHAIR_ROLE_LABEL].includes(obj.role)
+  }).map((obj: any): ChairAttributes => {
+    return {
+      id: obj['#'].toString(),
+      seniorPcMemberId: obj['#'].toString()
+    }
+  })
+  await createChairs(chair)
+
+  const authors: AuthorAttributes[] = []
+  authorsData.map((obj: any): AuthorAttributes => {
+    const readAuthor: AuthorAttributes = {
+      id: obj['person #'].toString(),
+      personId: obj['person #'].toString()
+    }
+
+    if (authors.findIndex((author: AuthorAttributes): boolean => {
+      return author.id === readAuthor.id
+    }) === -1) {
+      authors.push(readAuthor)
+    }
+
+    return readAuthor
+  })
+  await createAuthors(authors)
 }
 
 const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {

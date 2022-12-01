@@ -1,6 +1,5 @@
-import { nanoid } from 'nanoid'
 import { logger } from '../utils/logger'
-import { Author, Chair, PCMember, Person, SeniorPCMember } from '../types'
+import { Author, AuthorAttributes, Chair, ChairAttributes, PCMember, PCMemberAttributes, Person, PersonAttributes, SeniorPCMember, SeniorPCMemberAttributes } from '../types'
 
 export interface Persons {
   authors: Author[]
@@ -27,20 +26,14 @@ export const getPersons = async (domainId: string): Promise<Persons> => {
   return persons
 }
 
-const createPersons = async (persons: any): Promise<Person[]> => {
+export const createPersons = async (persons: PersonAttributes[]): Promise<Person[]> => {
   logger.log('info', 'services::persons::createPersons: Creating persons...')
 
   const createdPersons: Person[] = []
   for (let i = 0; i < persons.length; i++) {
-    const person: any = {
-      id: persons[i].id,
-      firstName: persons[i].firstName,
-      lastName: persons[i].lastName,
-      domainId: persons[i].domainId
-    }
     logger.log('info', 'services::persons::createPersons: creating person:')
-    logger.log('info', person)
-    const createdPerson: Person = await Person.create(person)
+    logger.log('info', persons[i])
+    const createdPerson: Person = await Person.create(persons[i])
     createdPersons.push(createdPerson)
   }
 
@@ -49,25 +42,16 @@ const createPersons = async (persons: any): Promise<Person[]> => {
   return createdPersons
 }
 
-export const createAuthors = async (authors: any): Promise<Author[]> => {
+export const createAuthors = async (authors: AuthorAttributes[]): Promise<Author[]> => {
   logger.log('info', 'services::persons::createAuthors: Creating authors...')
 
   const createdAuthors: Author[] = []
   for (let i = 0; i < authors.length; i++) {
-    const author = authors[i]
     logger.log('info', 'services::persons::createdAuthors: creating author:')
-    logger.log('info', author)
+    logger.log('info', authors[i])
 
-    const createdPerson: Person[] = await createPersons([author])
-    if (createdPerson.length > 0) {
-      const authorId = (author.authorId === undefined) ? nanoid() : author.authorId
-      const newAuthor: any = {
-        id: authorId,
-        personId: createdPerson[0].id
-      }
-      const createdAuthor: Author = await Author.create(newAuthor)
-      createdAuthors.push(createdAuthor)
-    }
+    const createdAuthor: Author = await Author.create(authors[i])
+    createdAuthors.push(createdAuthor)
   }
 
   logger.log('info', 'services::persons::createdAuthors: Done creating authors')
@@ -75,25 +59,16 @@ export const createAuthors = async (authors: any): Promise<Author[]> => {
   return createdAuthors
 }
 
-export const createPCMembers = async (pcMembers: any): Promise<PCMember[]> => {
+export const createPCMembers = async (pcMembers: PCMemberAttributes[]): Promise<PCMember[]> => {
   logger.log('info', 'services::persons::createPCMembers: Creating pcMembers...')
 
   const createdPCMembers: PCMember[] = []
   for (let i = 0; i < pcMembers.length; i++) {
-    const pcMember = pcMembers[i]
     logger.log('info', 'services::persons::createPCMembers: creating pcMember:')
-    logger.log('info', pcMember)
+    logger.log('info', pcMembers[i])
 
-    const createdPerson: Person[] = await createPersons([pcMember])
-    if (createdPerson.length > 0) {
-      const pcMemberId = (pcMember.pcMemberId === undefined) ? nanoid() : pcMember.pcMemberId
-      const newPCMember: any = {
-        id: pcMemberId,
-        personId: createdPerson[0].id
-      }
-      const createdPCMember: PCMember = await PCMember.create(newPCMember)
-      createdPCMembers.push(createdPCMember)
-    }
+    const createdPCMember: PCMember = await PCMember.create(pcMembers[i])
+    createdPCMembers.push(createdPCMember)
   }
 
   logger.log('info', 'services::persons::createPCMembers: Done creating pcMembers')
@@ -101,25 +76,16 @@ export const createPCMembers = async (pcMembers: any): Promise<PCMember[]> => {
   return createdPCMembers
 }
 
-export const createSeniorPCMembers = async (seniorPcMembers: any): Promise<SeniorPCMember[]> => {
+export const createSeniorPCMembers = async (seniorPcMembers: SeniorPCMemberAttributes[]): Promise<SeniorPCMember[]> => {
   logger.log('info', 'services::persons::createSeniorPCMembers: Creating seniorPcMembers...')
 
   const createdSeniorPCMembers: SeniorPCMember[] = []
   for (let i = 0; i < seniorPcMembers.length; i++) {
-    const seniorPcMember = seniorPcMembers[i]
     logger.log('info', 'services::persons::createSeniorPCMembers: creating seniorPcMembers:')
-    logger.log('info', seniorPcMember)
+    logger.log('info', seniorPcMembers[i])
 
-    const createdPCMember: PCMember[] = await createPCMembers([seniorPcMember])
-    if (createdPCMember.length > 0) {
-      const seniorPcMemberId = (seniorPcMember.seniorPcMemberId === undefined) ? nanoid() : seniorPcMember.seniorPcMemberId
-      const newSeniorPCMember: any = {
-        id: seniorPcMemberId,
-        pcMemberId: createdPCMember[0].id
-      }
-      const createdSeniorPCMember: SeniorPCMember = await SeniorPCMember.create(newSeniorPCMember)
-      createdSeniorPCMembers.push(createdSeniorPCMember)
-    }
+    const createdSeniorPCMember: SeniorPCMember = await SeniorPCMember.create(seniorPcMembers[i])
+    createdSeniorPCMembers.push(createdSeniorPCMember)
   }
 
   logger.log('info', 'services::persons::createSeniorPCMembers: Done creating seniorPcMembers')
@@ -127,25 +93,16 @@ export const createSeniorPCMembers = async (seniorPcMembers: any): Promise<Senio
   return createdSeniorPCMembers
 }
 
-export const createChairs = async (chairs: any): Promise<Chair[]> => {
+export const createChairs = async (chairs: ChairAttributes[]): Promise<Chair[]> => {
   logger.log('info', 'services::persons::createChairs: Creating chairs...')
 
   const createdChairs: Chair[] = []
   for (let i = 0; i < chairs.length; i++) {
-    const chair = chairs[i]
     logger.log('info', 'services::persons::createChairs: creating chairs:')
-    logger.log('info', chair)
+    logger.log('info', chairs[i])
 
-    const createdSeniorPCMember: SeniorPCMember[] = await createSeniorPCMembers([chair])
-    if (createdSeniorPCMember.length > 0) {
-      const chairId = (chair.chairId === undefined) ? nanoid() : chair.chairId
-      const newChair: any = {
-        id: chairId,
-        seniorPcMemberId: createdSeniorPCMember[0].id
-      }
-      const createdChair: Chair = await Chair.create(newChair)
-      createdChairs.push(createdChair)
-    }
+    const createdChair: Chair = await Chair.create(chairs[i])
+    createdChairs.push(createdChair)
   }
 
   logger.log('info', 'services::persons::createChairs: Done creating chairs')
