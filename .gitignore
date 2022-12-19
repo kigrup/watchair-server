@@ -108,5 +108,6 @@ dist
 build/
 
 # Uploaded files
-src/data/uploads/*
-!src/data/uploads/.gitkeep
+data/database.sqlite
+data/uploads/*
+!data/uploads/.gitkeep
