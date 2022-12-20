@@ -24,14 +24,12 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
     const assignments: Assignment[] = await getDomainAssignments(job.domainId)
     const reviews: Review[] = await getDomainReviews(job.domainId)
 
+    // Create global data metric
+
     const metricHeaderAttributes: MetricHeaderAttributes = {
       id: '',
-      title: job.subject,
+      title: `Global: ${job.subject}`,
       description: 'How many submission review assignments have been completed so far',
-      valueMin: 0,
-      valueMax: assignments.length,
-      valueStep: 1,
-      valueUnit: 'review/reviews',
       domainId: job.domainId
     }
     const metricHeader: MetricHeader = await createMetricHeader(metricHeaderAttributes)
@@ -40,12 +38,67 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
       id: '',
       headerId: metricHeader.id,
       value: reviews.length,
+      min: 0,
+      max: assignments.length,
+      step: 1,
+      unit: 'review/reviews',
       label: 'Reviews done',
       color: '#'
     }
     await createMetricValue(metricValueAttributes)
 
     logger.log('info', `services::metric-processing::processReviewsDoneJob: Created metric ${metricHeader.id}`)
+
+    // Create individual data metrics
+
+    const individualMetricHeaderAttributes: MetricHeaderAttributes = {
+      id: '',
+      title: `Individual: ${job.subject}`,
+      description: 'How many submission review assignments have been completed so far by each reviewer',
+      domainId: job.domainId
+    }
+    const individualMetricHeader: MetricHeader = await createMetricHeader(individualMetricHeaderAttributes)
+
+    const reviewsDoneMap: { [key: string]: number } = {}
+    reviews.forEach((review: Review): void => {
+      const reviewerId: string | undefined = review.pcMemberId
+      if (reviewerId !== undefined) {
+        if (reviewsDoneMap[reviewerId] === undefined) {
+          reviewsDoneMap[reviewerId] = 1
+        } else {
+          reviewsDoneMap[reviewerId] += 1
+        }
+      }
+    })
+
+    const reviewsAssignedMap: { [key: string]: number } = {}
+    assignments.forEach((assignment: Assignment): void => {
+      const reviewerId: string | undefined = assignment.pcMemberId
+      if (reviewerId !== undefined) {
+        if (reviewsAssignedMap[reviewerId] === undefined) {
+          reviewsAssignedMap[reviewerId] = 1
+        } else {
+          reviewsAssignedMap[reviewerId] += 1
+        }
+      }
+    })
+
+    const individualMetricValueAttributes: MetricValueAttributes[] = Object.keys(reviewsDoneMap).map((reviewerId: string): MetricValueAttributes => {
+      return {
+        id: '',
+        headerId: individualMetricHeader.id,
+        value: reviewsDoneMap[reviewerId],
+        min: 0,
+        max: reviewsAssignedMap[reviewerId],
+        step: 1,
+        unit: 'review/reviews',
+        label: reviewerId,
+        color: '#'
+      }
+    })
+    await createMetricValues(individualMetricValueAttributes)
+
+    logger.log('info', `services::metric-processing::processReviewsDoneJob: Created metric ${individualMetricHeader.id}`)
 
     logger.log('info', `services::metric-processing::processReviewsDoneJob: Finished processing metric job with id ${job.id} successfully`)
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
@@ -59,12 +112,8 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
   try {
     const metricHeaderAttributes: MetricHeaderAttributes = {
       id: '',
-      title: job.subject,
-      description: 'Which scores have the reviewed submissions received so far',
-      valueMin: -3,
-      valueMax: 3,
-      valueStep: 1,
-      valueUnit: 'review/reviews',
+      title: `Global: ${job.subject}`,
+      description: 'How many submissions have received what scores so far',
       domainId: job.domainId
     }
     const metricHeader: MetricHeader = await createMetricHeader(metricHeaderAttributes)
@@ -90,6 +139,10 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
         value: reviews.filter((review: Review): boolean => {
           return review.reviewScoreValue === reviewScore.value
         }).length,
+        min: 0,
+        max: -1,
+        step: 1,
+        unit: 'submissions rated',
         label: `${reviewScore.value}: ${reviewScore.explanation}`,
         color: labelsColors[reviewScore.value]
       }
@@ -98,6 +151,10 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
       id: '',
       headerId: metricHeader.id,
       value: assignments.length - reviews.length,
+      min: 0,
+      max: -1,
+      step: 1,
+      unit: 'submissions rated',
       label: 'not reviewed yet',
       color: labelsColors['not reviewed yet']
     })
