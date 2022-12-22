@@ -110,14 +110,6 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
 const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void> => {
   logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Started processing metric job of subtype '${job.subtype}' with id ${job.id} for domain ${job.domainId}`)
   try {
-    const metricHeaderAttributes: MetricHeaderAttributes = {
-      id: '',
-      title: `Global: ${job.subject}`,
-      description: 'How many submissions have received what scores so far',
-      domainId: job.domainId
-    }
-    const metricHeader: MetricHeader = await createMetricHeader(metricHeaderAttributes)
-
     const reviewScores: ReviewScore[] = await getReviewScores()
     const assignments: Assignment[] = await getDomainAssignments(job.domainId)
     const reviews: Review[] = await getDomainReviews(job.domainId)
@@ -132,8 +124,20 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
       3: '#83ff3b'
     }
 
+    // Global review scores metric
+    const metricHeaderAttributes: MetricHeaderAttributes = {
+      id: '',
+      title: `Global: ${job.subject}`,
+      description: 'How many submissions have received what scores so far',
+      domainId: job.domainId
+    }
+
+    let scoreSum = 0
+    const reviewCount = reviews.length
+
+    const metricHeader: MetricHeader = await createMetricHeader(metricHeaderAttributes)
     const metricValues = reviewScores.map((reviewScore: ReviewScore): MetricValueAttributes => {
-      return {
+      const metricValue = {
         id: '',
         headerId: metricHeader.id,
         value: reviews.filter((review: Review): boolean => {
@@ -146,6 +150,8 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
         label: `${reviewScore.value}: ${reviewScore.explanation}`,
         color: labelsColors[reviewScore.value]
       }
+      scoreSum += metricValue.value * reviewScore.value
+      return metricValue
     })
     metricValues.push({
       id: '',
@@ -161,6 +167,48 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
     await createMetricValues(metricValues)
 
     logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Created metric ${metricHeader.id}`)
+
+    // Individual review scores metric
+    const individualMetricHeaderAttributes: MetricHeaderAttributes = {
+      id: '',
+      title: `Individual: ${job.subject}`,
+      description: 'How many submissions have received what scores so far by each reviewer',
+      domainId: job.domainId
+    }
+
+    const individualMetricHeader: MetricHeader = await createMetricHeader(individualMetricHeaderAttributes)
+    const scoreAverage = scoreSum / reviewCount
+    const scoresByReviewer: { [key: string]: { count: number, scores: number} } = {}
+    reviews.forEach((review: Review): void => {
+      const reviewerId: string | undefined = review.pcMemberId
+      const reviewScore: number | undefined = review.reviewScoreValue
+      if (reviewerId !== undefined && reviewScore !== undefined) {
+        if (scoresByReviewer[reviewerId] === undefined) {
+          scoresByReviewer[reviewerId] = { count: 1, scores: reviewScore }
+        } else {
+          scoresByReviewer[reviewerId].count += 1
+          scoresByReviewer[reviewerId].scores += reviewScore
+        }
+      }
+    })
+
+    const individualMetricValueAttributes: MetricValueAttributes[] = Object.keys(scoresByReviewer).map((reviewerId: string): MetricValueAttributes => {
+      const individualAverage = scoresByReviewer[reviewerId].scores / scoresByReviewer[reviewerId].count
+      return {
+        id: '',
+        headerId: individualMetricHeader.id,
+        value: individualAverage - scoreAverage,
+        min: -3,
+        max: 3,
+        step: 0,
+        unit: 'points',
+        label: reviewerId,
+        color: '#'
+      }
+    })
+    await createMetricValues(individualMetricValueAttributes)
+
+    logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Created metric ${individualMetricHeader.id}`)
 
     logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Finished processing metric job with id ${job.id} successfully`)
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
