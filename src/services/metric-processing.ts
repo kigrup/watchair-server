@@ -206,6 +206,17 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
         color: '#'
       }
     })
+    individualMetricValueAttributes.push({
+      id: '',
+      headerId: individualMetricHeader.id,
+      value: scoreAverage,
+      min: -3,
+      max: 3,
+      step: 0,
+      unit: 'points',
+      label: 'average',
+      color: '#'
+    })
     await createMetricValues(individualMetricValueAttributes)
 
     logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Created metric ${individualMetricHeader.id}`)
