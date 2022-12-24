@@ -66,11 +66,6 @@ export interface MetricHeaderAttributes {
   title: string
   description: string
 
-  valueMin: number
-  valueMax: number
-  valueStep: number
-  valueUnit: string
-
   domainId: string
 }
 export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCreationAttributes<MetricHeader>> implements MetricHeader {
@@ -78,11 +73,6 @@ export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCrea
 
   declare title: string
   declare description: CreationOptional<string>
-
-  declare valueMin: CreationOptional<number>
-  declare valueMax: CreationOptional<number>
-  declare valueStep: CreationOptional<number>
-  declare valueUnit: string
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
@@ -103,6 +93,10 @@ export interface MetricValueAttributes {
   headerId: string
 
   value: number
+  min: number
+  max: number
+  step: number
+  unit: string
   label: string
 
   color: `#${string}`
@@ -112,6 +106,10 @@ export class MetricValue extends Model<InferAttributes<MetricValue>, InferCreati
   declare headerId: ForeignKey<MetricHeader['id']>
 
   declare value: number
+  declare min: number
+  declare max: number
+  declare step: number
+  declare unit: string
   declare label: string
 
   declare color: CreationOptional<`#${string}`>
@@ -438,22 +436,6 @@ MetricHeader.init(
       type: DataTypes.STRING(256),
       allowNull: true
     },
-    valueMin: {
-      type: DataTypes.FLOAT,
-      allowNull: false
-    },
-    valueMax: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    valueStep: {
-      type: DataTypes.FLOAT,
-      allowNull: true
-    },
-    valueUnit: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
   },
@@ -472,6 +454,22 @@ MetricValue.init(
     },
     value: {
       type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    min: {
+      type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    max: {
+      type: DataTypes.FLOAT,
+      allowNull: true
+    },
+    step: {
+      type: DataTypes.FLOAT,
+      allowNull: true
+    },
+    unit: {
+      type: DataTypes.STRING,
       allowNull: false
     },
     label: {

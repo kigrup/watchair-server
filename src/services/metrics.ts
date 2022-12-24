@@ -19,10 +19,6 @@ export const getDomainMetrics = async (domainId: string): Promise<Metric[]> => {
       id: metricHeader.id,
       title: metricHeader.title,
       description: metricHeader.description,
-      valueMin: metricHeader.valueMin,
-      valueMax: metricHeader.valueMax,
-      valueStep: metricHeader.valueStep,
-      valueUnit: metricHeader.valueUnit,
       domainId: metricHeader.domainId,
       values: (metricHeader.metricValues != null)
         ? metricHeader.metricValues.map((metricValue: MetricValue): MetricValueAttributes => {
@@ -30,6 +26,10 @@ export const getDomainMetrics = async (domainId: string): Promise<Metric[]> => {
             id: metricValue.id,
             headerId: metricValue.headerId,
             value: metricValue.value,
+            min: metricValue.min,
+            max: metricValue.max,
+            step: metricValue.step,
+            unit: metricValue.unit,
             label: metricValue.label,
             color: metricValue.color
           }
@@ -58,6 +58,7 @@ export const createMetricHeader = async (metricHeaderAttributes: MetricHeaderAtt
 export const createMetricValue = async (metricValueAttributes: MetricValueAttributes): Promise<MetricValue> => {
   const metricValue: MetricValue = await MetricValue.create({
     ...metricValueAttributes,
+    max: metricValueAttributes.max,
     id: nanoid()
   })
 
