@@ -28,10 +28,12 @@ export const getDomains = async (): Promise<Domain[]> => {
   return domains
 }
 
-export const createDomain = async (name: string): Promise<Domain> => {
+export const createDomain = async (name: string, startDate: Date | undefined, endDate: Date | undefined): Promise<Domain> => {
   const newDomain: Domain = await Domain.create({
     id: nanoid(),
-    name: name
+    name: name,
+    startDate: startDate,
+    endDate: endDate
   })
 
   logger.log('info', `services::domains::createDomain: Created new Domain: ${inspect(newDomain, { depth: 1 })}`)

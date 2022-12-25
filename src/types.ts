@@ -22,6 +22,8 @@ export class Domain extends Model<InferAttributes<Domain>, InferCreationAttribut
   declare id: string
   declare ownerUsername: CreationOptional<ForeignKey<User['username']>>
   declare name: string
+  declare startDate: CreationOptional<Date>
+  declare endDate: CreationOptional<Date>
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
@@ -378,6 +380,14 @@ Domain.init(
     name: {
       type: new DataTypes.STRING(128),
       allowNull: false
+    },
+    startDate: {
+      type: new DataTypes.DATE(),
+      allowNull: true
+    },
+    endDate: {
+      type: new DataTypes.DATE(),
+      allowNull: true
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE

@@ -42,7 +42,10 @@ export const createDomainHandler: RequestHandler = async (req, res, next) => {
   try {
     validateNewDomain(req)
     const name: string = req.body.name
-    const newDomain: Domain = await createDomain(name)
+    const startDate: Date | undefined = req.body.startDate !== undefined ? new Date(req.body.startDate) : undefined
+    const endDate: Date | undefined = req.body.endDate !== undefined ? new Date(req.body.endDate) : undefined
+
+    const newDomain: Domain = await createDomain(name, startDate, endDate)
 
     res.status(StatusCodes.CREATED).json(newDomain)
   } catch (error) {
