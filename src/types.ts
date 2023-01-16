@@ -3,7 +3,7 @@ import { logger } from './utils/logger'
 
 export const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: './data/database.sqlite',
+  storage: process.env.NODE_ENV === 'test' ? './data/test-database.sqlite' : './data/database.sqlite',
   logging: (msg) => logger.log('info', msg)
 })
 
@@ -70,7 +70,7 @@ export interface MetricHeaderAttributes {
 
   domainId: string
 }
-export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCreationAttributes<MetricHeader>> implements MetricHeader {
+export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCreationAttributes<MetricHeader>> implements MetricHeaderAttributes {
   declare id: string
 
   declare title: string

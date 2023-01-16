@@ -108,6 +108,6 @@ dist
 build/
 
 # Uploaded files
-data/database.sqlite
+data/*.sqlite
 data/uploads/*
 !data/uploads/.gitkeep
