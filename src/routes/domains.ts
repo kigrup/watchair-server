@@ -7,7 +7,7 @@ import { getFileExtension } from '../utils/string'
 import { getJobHandler, getJobsHandler } from '../controllers/jobs'
 import { logger } from '../utils/logger'
 
-const ALLOWED_EXTENSIONS = ['.xlsx', '.xls']
+/const ALLOWED_EXTENSIONS = ['.xlsx', '.xls']
 
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
@@ -20,6 +20,8 @@ const storage = multer.diskStorage({
     cb(null, newFileName)
   }
 })
+
+const ALLOWED_EXTENSIONS = ['.xlsx', '.xls']
 const upload = multer({
   storage: storage,
   fileFilter (_req, file, callback) {

@@ -12,18 +12,40 @@ export const getReviewScores = async (): Promise<ReviewScore[]> => {
 
 export const createReviewScores = async (reviewScores: any): Promise<ReviewScore[]> => {
   logger.log('info', 'services::scores::createReviewScores: Bulk creating review scores...')
+  const createdReviewScores = []
 
-  const createdReviewScores = await ReviewScore.bulkCreate(reviewScores)
+  for (const reviewScore of reviewScores) {
+    const existingReviewScore = await ReviewScore.findOne({
+      where: {
+        value: reviewScore.value
+      }
+    })
+    if (existingReviewScore === undefined) {
+      const createdReviewScore = await ReviewScore.create(reviewScore)
+      createdReviewScores.push(createdReviewScore)
+    }
+  }
 
-  logger.log('info', 'services::scores::createReviewScores: Done bulk creating review scores')
+  logger.log('info', 'services::scores::createReviewScores: Done creating review scores')
 
   return createdReviewScores
 }
 
 export const createConfidenceScores = async (confidenceScores: any): Promise<Confidence[]> => {
   logger.log('info', 'services::scores::createConfidenceScores: Bulk creating confidence scores...')
+  const createdConfidenceScores = []
 
-  const createdConfidenceScores = await Confidence.bulkCreate(confidenceScores)
+  for (const confidenceScore of confidenceScores) {
+    const existingConfidenceScore = await Confidence.findOne({
+      where: {
+        value: confidenceScore.value
+      }
+    })
+    if (existingConfidenceScore === undefined) {
+      const createdConfidenceScore = await Confidence.create(confidenceScore)
+      createdConfidenceScores.push(createdConfidenceScore)
+    }
+  }
 
   logger.log('info', 'services::scores::createConfidenceScores: Done bulk creating confidence scores')
 

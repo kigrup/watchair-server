@@ -76,7 +76,7 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
 
   const persons: PersonAttributes[] = committeeData.map((obj: any): PersonAttributes => {
     return {
-      id: obj['person #'].toString(),
+      id: `${job.domainId}${obj['person #'].toString()}`,
       firstName: obj['first name'].toString(),
       lastName: obj['last name'].toString(),
       domainId: job.domainId
@@ -85,7 +85,7 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
 
   authorsData.map((obj: any): PersonAttributes => {
     const authorPerson: PersonAttributes = {
-      id: obj['person #'].toString(),
+      id: `${job.domainId}${obj['person #'].toString()}`,
       firstName: obj['first name'].toString(),
       lastName: obj['last name'].toString(),
       domainId: job.domainId
@@ -103,8 +103,8 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
     return [PC_MEMBER_ROLE_LABEL, SENIOR_PC_MEMBER_ROLE_LABEL, CHAIR_ROLE_LABEL].includes(obj.role)
   }).map((obj: any): PCMemberAttributes => {
     return {
-      id: obj['#'].toString(),
-      personId: obj['person #'].toString()
+      id: `${job.domainId}${obj['#'].toString()}`,
+      personId: `${job.domainId}${obj['person #'].toString()}`
     }
   })
   await createPCMembers(pcMembers)
@@ -113,8 +113,8 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
     return [SENIOR_PC_MEMBER_ROLE_LABEL, CHAIR_ROLE_LABEL].includes(obj.role)
   }).map((obj: any): SeniorPCMemberAttributes => {
     return {
-      id: obj['#'].toString(),
-      pcMemberId: obj['#'].toString()
+      id: `${job.domainId}${obj['#'].toString()}`,
+      pcMemberId: `${job.domainId}${obj['#'].toString()}`
     }
   })
   await createSeniorPCMembers(seniorPcMembers)
@@ -123,8 +123,8 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
     return [CHAIR_ROLE_LABEL].includes(obj.role)
   }).map((obj: any): ChairAttributes => {
     return {
-      id: obj['#'].toString(),
-      seniorPcMemberId: obj['#'].toString()
+      id: `${job.domainId}${obj['#'].toString()}`,
+      seniorPcMemberId: `${job.domainId}${obj['#'].toString()}`
     }
   })
   await createChairs(chair)
@@ -132,8 +132,8 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
   const authors: AuthorAttributes[] = []
   authorsData.map((obj: any): AuthorAttributes => {
     const readAuthor: AuthorAttributes = {
-      id: obj['person #'].toString(),
-      personId: obj['person #'].toString()
+      id: `${job.domainId}${obj['person #'].toString()}`,
+      personId: `${job.domainId}${obj['person #'].toString()}`
     }
 
     if (authors.findIndex((author: AuthorAttributes): boolean => {
@@ -147,12 +147,12 @@ const processPersons = async (job: ProcessingJob, committeeWorksheet: WorkSheet,
   await createAuthors(authors)
 }
 
-const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
+const processSubmissions = async (job: ProcessingJob, submissionsWorksheet: WorkSheet, authorsWorksheet: WorkSheet): Promise<void> => {
   logger.log('info', 'services::file-processing::processSubmissions: Processing submissions worksheets')
   const submissionsData = utils.sheet_to_json(submissionsWorksheet)
   const submissionsModelObjects = submissionsData.map((obj: any) => {
     const modelObject = {
-      id: obj['#'].toString(),
+      id: `${job.domainId}${obj['#'].toString()}`,
       title: obj.title,
       submitted: new Date(obj.submitted),
       lastUpdated: new Date(obj['last updated'])
@@ -166,21 +166,21 @@ const processSubmissions = async (_job: ProcessingJob, submissionsWorksheet: Wor
   const modelObjects = authorsData.map((obj: any) => {
     return {
       id: nanoid(),
-      authorId: obj['person #'].toString(),
+      authorId: `${job.domainId}${obj['person #'].toString()}`,
       submissionId: obj['submission #'].toString()
     }
   })
   await createSubmissionAuthorships(modelObjects)
 }
 
-const processAssignments = async (_job: ProcessingJob, assignmentsWorksheet: WorkSheet): Promise<void> => {
+const processAssignments = async (job: ProcessingJob, assignmentsWorksheet: WorkSheet): Promise<void> => {
   logger.log('info', 'services::file-processing::processAssignments: Processing assignment worksheets')
   const assignmentsData = utils.sheet_to_json(assignmentsWorksheet)
   const assignmentsModelObjects = assignmentsData.map((obj: any) => {
     const modelObject = {
       id: nanoid(),
-      pcMemberId: obj['member #'].toString(),
-      submissionId: obj['submission #'].toString()
+      pcMemberId: `${job.domainId}${obj['member #'].toString()}`,
+      submissionId: `${job.domainId}${obj['submission #'].toString()}`
     }
 
     return modelObject
@@ -225,7 +225,7 @@ const processScores = async (_job: ProcessingJob, scoresWorksheet: WorkSheet): P
   ])
 }
 
-const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet): Promise<void> => {
+const processReviews = async (job: ProcessingJob, reviewsWorksheet: WorkSheet): Promise<void> => {
   logger.log('info', 'services::file-processing::processReviews: Processing reviews worksheet')
   const reviewsData = utils.sheet_to_json(reviewsWorksheet)
 
@@ -238,8 +238,8 @@ const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet):
       id: obj['#'].toString(),
       submitted: new Date(`${submittedDate}T${submittedTime}`),
 
-      pcMemberId: obj['member #'].toString(),
-      submissionId: obj['submission #'].toString(),
+      pcMemberId: `${job.domainId}${obj['member #'].toString()}`,
+      submissionId: `${job.domainId}${obj['submission #'].toString()}`,
 
       content: obj.text,
 
