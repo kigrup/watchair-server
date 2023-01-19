@@ -45,7 +45,8 @@ export enum JobSubtype {
   EXCEL = 'EXCEL',
   // Type: METRIC
   REVIEWS_DONE = 'REVIEWS DONE',
-  SUBMISSION_ACCEPTANCE = 'SUBMISSION ACCEPTANCE'
+  SUBMISSION_ACCEPTANCE = 'SUBMISSION ACCEPTANCE',
+  PARTICIPATION = 'PARTICIPATION'
 }
 
 export class ProcessingJob extends Model<InferAttributes<ProcessingJob>, InferCreationAttributes<ProcessingJob>> {
@@ -314,7 +315,16 @@ export class Recommendation extends Model<InferAttributes<Recommendation>, Infer
   declare veredict: string
 }
 
-export class Comment extends Model<InferAttributes<Comment>, InferCreationAttributes<Comment>> {
+export interface CommentAttributes {
+  id: string
+  submitted: Date
+
+  pcMemberId: string
+  submissionId: string
+
+  content: string
+}
+export class Comment extends Model<InferAttributes<Comment>, InferCreationAttributes<Comment>> implements CommentAttributes {
   declare id: string
   declare submitted: Date
 
@@ -1086,6 +1096,25 @@ PCMember.hasMany(Bid)
 Bid.belongsTo(Submission)
 Submission.hasMany(Bid)
 Bid.belongsTo(PCMember)
+
+PCMember.hasMany(Comment, {
+  sourceKey: 'id',
+  foreignKey: 'pcMemberId',
+  as: 'membercomments'
+})
+Comment.belongsTo(Submission, {
+  foreignKey: 'submissionId',
+  as: 'commentsubmission'
+})
+Submission.hasMany(Comment, {
+  sourceKey: 'id',
+  foreignKey: 'submissionId',
+  as: 'submissioncomments'
+})
+Comment.belongsTo(PCMember, {
+  foreignKey: 'pcMemberId',
+  as: 'commentauthor'
+})
 
 BidType.hasMany(Bid, {
   sourceKey: 'title',
