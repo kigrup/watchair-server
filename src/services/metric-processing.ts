@@ -1,12 +1,14 @@
 import { logger } from '../utils/logger'
 import { ForeignKeyConstraintError, UniqueConstraintError } from 'sequelize'
 import { inspect } from 'util'
-import { Assignment, JobStatus, JobSubtype, JobType, ProcessingJob, Review, MetricHeader, MetricHeaderAttributes, MetricValueAttributes, ReviewScore } from '../types'
+import { Assignment, JobStatus, JobSubtype, JobType, ProcessingJob, Review, MetricHeader, MetricHeaderAttributes, MetricValueAttributes, ReviewScore, Comment, Domain } from '../types'
 import { createProcessingJob, endProcessingJob } from './jobs'
 import { createMetricHeader, createMetricValue, createMetricValues } from './metrics'
 import { getDomainReviews } from './reviews'
 import { getReviewScores } from './scores'
 import { getDomainAssignments } from './submissions'
+import { getDomainComments } from './comments'
+import { getDomain } from './domains'
 
 export const processAllMetrics = async (domainId: string): Promise<void> => {
   logger.log('info', `services::metric-processing::processAllMetrics: Queuing all metrics for processing for domain ${domainId}`)
@@ -16,6 +18,9 @@ export const processAllMetrics = async (domainId: string): Promise<void> => {
 
   const submissionAcceptanceJob: ProcessingJob = await createProcessingJob(JobType.METRIC, JobSubtype.SUBMISSION_ACCEPTANCE, 'Submissions evaluation scores', domainId)
   await processSubmissionAcceptanceJob(submissionAcceptanceJob)
+
+  const participationJob: ProcessingJob = await createProcessingJob(JobType.METRIC, JobSubtype.PARTICIPATION, 'Participation in the review process', domainId)
+  await processParticipationJob(participationJob)
 }
 
 const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
@@ -23,6 +28,7 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
   try {
     const assignments: Assignment[] = await getDomainAssignments(job.domainId)
     const reviews: Review[] = await getDomainReviews(job.domainId)
+    const domain: Domain | null = await getDomain(job.domainId)
 
     // Create global data metric
 
@@ -70,6 +76,48 @@ const processReviewsDoneJob = async (job: ProcessingJob): Promise<void> => {
         }
       }
     })
+
+    if (domain?.endDate !== undefined) {
+      logger.log('info', 'services::metric-processing::processReviewsDoneJob: Found domain end date, calculating late reviews')
+      const individualLateMetricHeaderAttributes: MetricHeaderAttributes = {
+        id: '',
+        title: `Individual: ${job.subject} (late)`,
+        description: 'How many submission review assignments have been completed after the due date by each reviewer',
+        domainId: job.domainId
+      }
+      const individualLateMetricHeader: MetricHeader = await createMetricHeader(individualLateMetricHeaderAttributes)
+
+      const reviewsDoneLateMap: { [key: string]: number } = {}
+      reviews.forEach((review: Review): void => {
+        const reviewerId: string | undefined = review.pcMemberId
+        const reviewDate: Date = new Date(review.submitted)
+        if (domain.endDate < reviewDate) {
+          if (reviewerId !== undefined) {
+            if (reviewsDoneLateMap[reviewerId] === undefined) {
+              reviewsDoneLateMap[reviewerId] = 1
+            } else {
+              reviewsDoneLateMap[reviewerId] += 1
+            }
+          }
+        }
+      })
+
+      const individualLateMetricValueAttributes: MetricValueAttributes[] = Object.keys(reviewsDoneLateMap).map((reviewerId: string): MetricValueAttributes => {
+        return {
+          id: '',
+          headerId: individualLateMetricHeader.id,
+          value: reviewsDoneLateMap[reviewerId],
+          min: 0,
+          max: -1,
+          step: 1,
+          unit: 'review/reviews',
+          label: reviewerId,
+          color: '#'
+        }
+      })
+      await createMetricValues(individualLateMetricValueAttributes)
+      logger.log('info', `services::metric-processing::processReviewsDoneJob: Created metric ${individualLateMetricHeader.id}`)
+    }
 
     const reviewsAssignedMap: { [key: string]: number } = {}
     assignments.forEach((assignment: Assignment): void => {
@@ -172,7 +220,7 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
     const individualMetricHeaderAttributes: MetricHeaderAttributes = {
       id: '',
       title: `Individual: ${job.subject}`,
-      description: 'How many submissions have received what scores so far by each reviewer',
+      description: 'What is the deviation from the average review score of each reviewer',
       domainId: job.domainId
     }
 
@@ -198,19 +246,151 @@ const processSubmissionAcceptanceJob = async (job: ProcessingJob): Promise<void>
         id: '',
         headerId: individualMetricHeader.id,
         value: individualAverage - scoreAverage,
-        min: -3,
-        max: 3,
+        min: -6,
+        max: 6,
         step: 0,
         unit: 'points',
         label: reviewerId,
         color: '#'
       }
     })
+    individualMetricValueAttributes.push({
+      id: '',
+      headerId: individualMetricHeader.id,
+      value: scoreAverage,
+      min: -3,
+      max: 3,
+      step: 0,
+      unit: 'points',
+      label: 'average',
+      color: '#'
+    })
     await createMetricValues(individualMetricValueAttributes)
-
     logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Created metric ${individualMetricHeader.id}`)
 
+    // Individual local review score factor
+
+    const individualLocalMetricHeaderAttributes: MetricHeaderAttributes = {
+      id: '',
+      title: `Individual Local: ${job.subject}`,
+      description: 'What is the average deviation from the average review score of each paper reviewed by each reviewer',
+      domainId: job.domainId
+    }
+
+    const individualLocalMetricHeader: MetricHeader = await createMetricHeader(individualLocalMetricHeaderAttributes)
+    const scoresBySubmission: { [key: string]: { count: number, scores: number, submissionId: string, average: number | undefined } } = {}
+    reviews.forEach((review: Review): void => {
+      const submissionId: string | undefined = review.submissionId
+      const reviewScore: number | undefined = review.reviewScoreValue
+      if (submissionId !== undefined && reviewScore !== undefined) {
+        if (scoresBySubmission[submissionId] === undefined) {
+          scoresBySubmission[submissionId] = { count: 1, scores: reviewScore, submissionId: submissionId, average: undefined }
+        } else {
+          scoresBySubmission[submissionId].count += 1
+          scoresBySubmission[submissionId].scores += reviewScore
+        }
+      }
+    })
+    Object.keys(scoresBySubmission).forEach(submissionId => {
+      const submissionAverage = scoresBySubmission[submissionId].scores / scoresBySubmission[submissionId].count
+      scoresBySubmission[submissionId].average = submissionAverage
+    })
+
+    const reviewersScoreDeviations: { [key: string]: { deviations: number[] } } = {}
+    reviews.forEach((review: Review): void => {
+      const reviewerId: string | undefined = review.pcMemberId
+      const submissionId: string | undefined = review.submissionId
+      const reviewScore: number | undefined = review.reviewScoreValue
+      const submissionAverage: number | undefined = scoresBySubmission[submissionId].average
+      if (reviewerId !== undefined && submissionId !== undefined && reviewScore !== undefined && submissionAverage !== undefined) {
+        if (reviewersScoreDeviations[reviewerId] === undefined) {
+          reviewersScoreDeviations[reviewerId] = { deviations: [reviewScore - submissionAverage] }
+        } else {
+          reviewersScoreDeviations[reviewerId].deviations.push(reviewScore - submissionAverage)
+        }
+      }
+    })
+
+    const individualLocalMetricValueAttributes: MetricValueAttributes[] = Object.keys(reviewersScoreDeviations).map((reviewerId: string): MetricValueAttributes => {
+      const averageDeviation = reviewersScoreDeviations[reviewerId].deviations.reduce((pv, cv) => { return pv + cv })
+      const deviations = reviewersScoreDeviations[reviewerId].deviations.length
+      return {
+        id: '',
+        headerId: individualLocalMetricHeader.id,
+        value: averageDeviation / deviations,
+        min: -6,
+        max: 6,
+        step: 0,
+        unit: 'points',
+        label: reviewerId,
+        color: '#'
+      }
+    })
+    await createMetricValues(individualLocalMetricValueAttributes)
+    logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Created metric ${individualLocalMetricHeader.id}`)
+
     logger.log('info', `services::metric-processing::processSubmissionAcceptanceJob: Finished processing metric job with id ${job.id} successfully`)
+    await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
+  } catch (error) {
+    await handleJobError(error, job)
+  }
+}
+
+const processParticipationJob = async (job: ProcessingJob): Promise<void> => {
+  logger.log('info', `services::metric-processing::processParticipationJob: Started processing metric job of subtype '${job.subtype}' with id ${job.id} for domain ${job.domainId}`)
+  try {
+    const reviews: Review[] = await getDomainReviews(job.domainId)
+    const comments: Comment[] = await getDomainComments(job.domainId)
+
+    const memberParticipation: { [key: string]: number } = {}
+
+    reviews.forEach((review: Review): void => {
+      const reviewerId: string | undefined = review.pcMemberId
+      if (reviewerId !== undefined) {
+        if (memberParticipation[reviewerId] === undefined) {
+          memberParticipation[reviewerId] = 1
+        } else {
+          memberParticipation[reviewerId] += 1
+        }
+      }
+    })
+
+    comments.forEach((comment: Comment): void => {
+      const commenterId: string | undefined = comment.pcMemberId
+      if (commenterId !== undefined) {
+        if (memberParticipation[commenterId] === undefined) {
+          memberParticipation[commenterId] = 1
+        } else {
+          memberParticipation[commenterId] += 1
+        }
+      }
+    })
+
+    const individualMetricHeaderAttributes: MetricHeaderAttributes = {
+      id: '',
+      title: `Individual: ${job.subject}`,
+      description: 'What is the participation score of each committe member',
+      domainId: job.domainId
+    }
+    const individualMetricHeader: MetricHeader = await createMetricHeader(individualMetricHeaderAttributes)
+
+    const individualMetricValueAttributes: MetricValueAttributes[] = Object.keys(memberParticipation).map((memberId: string): MetricValueAttributes => {
+      return {
+        id: '',
+        headerId: individualMetricHeader.id,
+        value: memberParticipation[memberId],
+        min: 0,
+        max: -1,
+        step: 1,
+        unit: 'reviews&comments',
+        color: '#',
+        label: memberId
+      }
+    })
+    await createMetricValues(individualMetricValueAttributes)
+    logger.log('info', `services::metric-processing::processParticipationJob: Created metric ${individualMetricHeader.id}`)
+
+    logger.log('info', `services::metric-processing::processParticipationJob: Finished processing metric job with id ${job.id} successfully`)
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
   } catch (error) {
     await handleJobError(error, job)

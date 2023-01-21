@@ -16,12 +16,10 @@ export const logger = createLogger({
   ]
 })
 
-if (process.env.NODE_ENV !== 'production') {
-  console.log('NODE_ENV Not production, logging to console too...')
-  logger.add(new transports.Console({
-    format: format.combine(
-      format.colorize(),
-      format.simple()
-    )
-  }))
-}
+console.log('NODE_ENV Not production, logging to console too...')
+logger.add(new transports.Console({
+  format: format.combine(
+    format.colorize(),
+    format.simple()
+  )
+}))

@@ -12,6 +12,7 @@ import { getDomainReviews } from '../services/reviews'
 import { getDomainMetrics } from '../services/metrics'
 import { logger } from '../utils/logger'
 import { getSubmissions } from '../services/submissions'
+import { getDomainComments } from '../services/comments'
 
 export const getDomainHandler: RequestHandler = async (req, res, next) => {
   logger.log('info', 'controllers::domains::getDomainHandler: Received domains GET request')
@@ -42,7 +43,10 @@ export const createDomainHandler: RequestHandler = async (req, res, next) => {
   try {
     validateNewDomain(req)
     const name: string = req.body.name
-    const newDomain: Domain = await createDomain(name)
+    const startDate: Date | undefined = req.body.startDate !== undefined ? new Date(req.body.startDate) : undefined
+    const endDate: Date | undefined = req.body.endDate !== undefined ? new Date(req.body.endDate) : undefined
+
+    const newDomain: Domain = await createDomain(name, startDate, endDate)
 
     res.status(StatusCodes.CREATED).json(newDomain)
   } catch (error) {
@@ -124,6 +128,20 @@ export const getReviewsHandler: RequestHandler = async (req, res, next) => {
     }
     const reviews: Review[] = await getDomainReviews(domainId)
     res.status(StatusCodes.OK).json(reviews)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getCommentsHandler: RequestHandler = async (req, res, next) => {
+  logger.log('info', 'controllers::domains::getCommentsHandler: Received comments GET request')
+  try {
+    const domainId = req.params.domainId
+    if (await getDomain(domainId) === null) {
+      throw new NotFoundError('Invalid Domain Id.')
+    }
+    const comments: Comment[] = await getDomainComments(domainId)
+    res.status(StatusCodes.OK).json(comments)
   } catch (error) {
     next(error)
   }

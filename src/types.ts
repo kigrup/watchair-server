@@ -3,7 +3,7 @@ import { logger } from './utils/logger'
 
 export const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: './data/database.sqlite',
+  storage: process.env.NODE_ENV === 'test' ? './data/test-database.sqlite' : './data/database.sqlite',
   logging: (msg) => logger.log('info', msg)
 })
 
@@ -22,6 +22,8 @@ export class Domain extends Model<InferAttributes<Domain>, InferCreationAttribut
   declare id: string
   declare ownerUsername: CreationOptional<ForeignKey<User['username']>>
   declare name: string
+  declare startDate: CreationOptional<Date>
+  declare endDate: CreationOptional<Date>
 
   declare createdAt: CreationOptional<Date>
   declare updatedAt: CreationOptional<Date>
@@ -43,7 +45,8 @@ export enum JobSubtype {
   EXCEL = 'EXCEL',
   // Type: METRIC
   REVIEWS_DONE = 'REVIEWS DONE',
-  SUBMISSION_ACCEPTANCE = 'SUBMISSION ACCEPTANCE'
+  SUBMISSION_ACCEPTANCE = 'SUBMISSION ACCEPTANCE',
+  PARTICIPATION = 'PARTICIPATION'
 }
 
 export class ProcessingJob extends Model<InferAttributes<ProcessingJob>, InferCreationAttributes<ProcessingJob>> {
@@ -68,7 +71,7 @@ export interface MetricHeaderAttributes {
 
   domainId: string
 }
-export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCreationAttributes<MetricHeader>> implements MetricHeader {
+export class MetricHeader extends Model<InferAttributes<MetricHeader>, InferCreationAttributes<MetricHeader>> implements MetricHeaderAttributes {
   declare id: string
 
   declare title: string
@@ -312,7 +315,16 @@ export class Recommendation extends Model<InferAttributes<Recommendation>, Infer
   declare veredict: string
 }
 
-export class Comment extends Model<InferAttributes<Comment>, InferCreationAttributes<Comment>> {
+export interface CommentAttributes {
+  id: string
+  submitted: Date
+
+  pcMemberId: string
+  submissionId: string
+
+  content: string
+}
+export class Comment extends Model<InferAttributes<Comment>, InferCreationAttributes<Comment>> implements CommentAttributes {
   declare id: string
   declare submitted: Date
 
@@ -378,6 +390,14 @@ Domain.init(
     name: {
       type: new DataTypes.STRING(128),
       allowNull: false
+    },
+    startDate: {
+      type: new DataTypes.DATE(),
+      allowNull: true
+    },
+    endDate: {
+      type: new DataTypes.DATE(),
+      allowNull: true
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
@@ -1076,6 +1096,25 @@ PCMember.hasMany(Bid)
 Bid.belongsTo(Submission)
 Submission.hasMany(Bid)
 Bid.belongsTo(PCMember)
+
+PCMember.hasMany(Comment, {
+  sourceKey: 'id',
+  foreignKey: 'pcMemberId',
+  as: 'membercomments'
+})
+Comment.belongsTo(Submission, {
+  foreignKey: 'submissionId',
+  as: 'commentsubmission'
+})
+Submission.hasMany(Comment, {
+  sourceKey: 'id',
+  foreignKey: 'submissionId',
+  as: 'submissioncomments'
+})
+Comment.belongsTo(PCMember, {
+  foreignKey: 'pcMemberId',
+  as: 'commentauthor'
+})
 
 BidType.hasMany(Bid, {
   sourceKey: 'title',
