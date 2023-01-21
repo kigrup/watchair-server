@@ -12,7 +12,7 @@ export const syncDatabaseHandler: RequestHandler = async (req, res, next) => {
       throw new BadRequestError('Missing or invalid force sync parameter')
     }
     await syncDatabase(force)
-    res.status(StatusCodes.OK).json({ message: 'Synced database' })
+    res.status(StatusCodes.OK).json({ success: true })
   } catch (error) {
     next(error)
   }

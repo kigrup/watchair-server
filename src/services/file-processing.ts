@@ -12,6 +12,7 @@ import { ForeignKeyConstraintError, UniqueConstraintError } from 'sequelize'
 import { createReviews } from './reviews'
 import { createConfidenceScores, createReviewScores } from './scores'
 import { processAllMetrics } from './metric-processing'
+import { createComments } from './comments'
 
 const COMMITTEE_WORKSHEET_NAME = 'Program committee'
 const AUTHORS_WORKSHEET_NAME = 'Authors'
@@ -19,6 +20,7 @@ const SUBMISSIONS_WORKSHEET_NAME = 'Submissions'
 const SUBMISSION_ASSIGNMENT_WORKSHEET_NAME = 'Submission assignment'
 const SCORES_WORKSHEET_NAME = 'Review field scores'
 const REVIEWS_WORKSHEET_NAME = 'Reviews'
+const COMMENTS_WORKSHEET_NAME = 'Comments'
 
 const PC_MEMBER_ROLE_LABEL = 'PC member'
 const SENIOR_PC_MEMBER_ROLE_LABEL = 'senior PC member'
@@ -52,6 +54,10 @@ export const processFileJob = async (job: ProcessingJob): Promise<void> => {
 
     if (workbook.SheetNames.includes(REVIEWS_WORKSHEET_NAME)) {
       await processReviews(job, workbook.Sheets[REVIEWS_WORKSHEET_NAME])
+    }
+
+    if (workbook.SheetNames.includes(COMMENTS_WORKSHEET_NAME)) {
+      await processComments(job, workbook.Sheets[COMMENTS_WORKSHEET_NAME])
     }
 
     await endProcessingJob(job, JobStatus.COMPLETED, 'Job ended successfully.')
@@ -250,4 +256,24 @@ const processReviews = async (_job: ProcessingJob, reviewsWorksheet: WorkSheet):
   })
   logger.log('info', 'reviews')
   await createReviews(reviews)
+}
+
+const processComments = async (_job: ProcessingJob, commentsWorksheet: WorkSheet): Promise<void> => {
+  logger.log('info', 'services::file-processing::processComments: Processing comments worksheet')
+  const commentsData = utils.sheet_to_json(commentsWorksheet)
+  const commentsModelObjects = commentsData.map((obj: any) => {
+    const submittedDate: string = obj.date
+    const submittedTime: string = obj.time
+    const modelObject = {
+      id: nanoid(),
+      submitted: new Date(`${submittedDate}T${submittedTime}`),
+
+      content: obj.comment,
+      pcMemberId: obj['member #'].toString(),
+      submissionId: obj['submission #'].toString()
+    }
+
+    return modelObject
+  })
+  await createComments(commentsModelObjects)
 }

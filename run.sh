@@ -1,0 +1,1 @@
+docker run -d -p 42525:42525 --name watchair-server raulplesa/watchair-server:latest
